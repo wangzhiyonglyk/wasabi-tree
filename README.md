@@ -1,4 +1,5 @@
-
+#### 下载方式
+npm install wasabi-tree
 #### 引入方式
 ``` javascript
 import Tree from "wasabi-tree";
