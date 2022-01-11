@@ -9,7 +9,7 @@ module.exports = {
     // 输出文件的存放目录
     path: path.resolve(__dirname, 'lib'),
     library: {
-      name: "wasabi-name",
+      name: "wasabi-tree",
       type: "umd"
     },
     clean: true, // 在生成文件之前清空 output 目录
