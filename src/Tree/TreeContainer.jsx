@@ -399,9 +399,7 @@ class TreeContainer extends Component {
     visibleDataInit() {
         let height = document.getElementById(this.state.treecontainerid).clientHeight || window.innerHeight;
         this.visibleDataCount = Math.ceil(height / config.rowDefaultHeight);
-        document.getElementById(this.state.treecontainerid).scrollTop = 0;
-        document.getElementById(this.state.treeid).style.transform = `translate3d(0,0,0)`;
-        this.scrollShowVisibleData(0, this.visibleDataCount);
+       this.onScroll();
     }
  
     /**

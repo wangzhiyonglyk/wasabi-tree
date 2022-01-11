@@ -64,20 +64,20 @@ function NodeView(props) {
     let arrowIcon;
     if (row.open) {
         if (props.arrowUnFoldIcon) {
-            arrowIcon = <div className={"wasabi-tree-li-icon"} style={{ display: "inline-block" }} onClick={row.isParent ? onExpand.bind(this, !row.open, row.id, row.text, row) : null}>{props.arrowUnFoldIcon}</div>
+            arrowIcon = <div className={"wasabi-tree-li-icon"} style={{ display: "inline-block" }} onClick={row.isParent ? onExpand.bind(this, !row.open, row.id, row.text, props) : null}>{props.arrowUnFoldIcon}</div>
 
         }
     }
     else {
         if (props.arrowFoldIcon) {
-            arrowIcon = <div className={"wasabi-tree-li-icon"} style={{ display: "inline-block" }} onClick={row.isParent ? onExpand.bind(this, !row.open, row.id, row.text, row) : null}>{props.arrowFoldIcon}</div>
+            arrowIcon = <div className={"wasabi-tree-li-icon"} style={{ display: "inline-block" }} onClick={row.isParent ? onExpand.bind(this, !row.open, row.id, row.text, props) : null}>{props.arrowFoldIcon}</div>
 
         }
     }
     if (!arrowIcon) {
         let icon = props.componentType === "tree" ? "icon-caret" : "icon-arrow";
         arrowIcon = <i className={((clickId === row.id ? " selected " : "")) + (row.open ? ` wasabi-tree-li-icon  ${icon}-down ` : ` wasabi-tree-li-icon  ${icon}-right`)}
-            onClick={row.isParent ? onExpand.bind(this, !row.open, row.id, row.text, row) : null}>
+            onClick={row.isParent ? onExpand.bind(this, !row.open, row.id, row.text, props) : null}>
             {/* span用于右边加虚线*/}
             <span className="wasabi-tree-li-icon-beforeRight"></span>
             {/* 用于向下加虚线 */}
@@ -94,7 +94,7 @@ function NodeView(props) {
             /**有子节点有向下的虚线**/
             className={(clickId === row.id ? " selected " : "") + (childrenLength > 0 ? " hasChildren " : "  ")}
             value={row.checked ? row.id : ""} data={[{ value: row.id, text: "" }]}
-            onSelect={onChecked.bind(this, row.id, row.text, row)}></CheckBox>
+            onSelect={onChecked.bind(this, row.id, row.text, props)}></CheckBox>
     }
     else if(checkStyle==="radio"){
         checkNode = <Radio key="r1" 
@@ -104,7 +104,7 @@ function NodeView(props) {
             /**有子节点有向下的虚线**/
             className={(clickId === row.id ? " selected " : "") + (childrenLength > 0 ? " hasChildren " : "  ")}
             value={row.checked ? row.id : ""} data={[{ value: row.id, text: "" }]}
-            onSelect={onChecked.bind(this, row.id, row.text, row)}></Radio>  
+            onSelect={onChecked.bind(this, row.id, row.text, props)}></Radio>  
     }
     else if (typeof checkStyle === "function" && row.selectAble) {
         checkNode = checkStyle(row);
@@ -129,8 +129,8 @@ function NodeView(props) {
             title={title}
             onDrop={onNodeDrop}
             onDragOver={onNodeDragOver} onDragLeave={onNodeDragLeave}
-            onClick={onClick.bind(this, row.id, row.text, row)}
-            onDoubleClick={onDoubleClick.bind(this, row.id, row.text, row)} >
+            onClick={onClick.bind(this, row.id, row.text, props)}
+            onDoubleClick={onDoubleClick.bind(this, row.id, row.text, props)} >
             {rename ?
                 <Text id={row.textid} required={true} onKeyUp={onKeyUp} onBlur={onBlur}
                     name={"key" + row.id} value={row.text} ></Text> :
