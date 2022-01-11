@@ -37,7 +37,7 @@ let formatterData = function (type, value, data = [], idOrValueField = "value", 
             }
             //如果有子节点的时候.tree,treepicker,picker
             if (realData[i].children && realData[i].children.length > 0) {
-                realData[i].children = propsTran.formatterData(type, value, realData[i].children, idOrValueField, textField, parentField, simpleData);
+                realData[i].children = formatterData(type, value, realData[i].children, idOrValueField, textField, parentField, simpleData);
             }
         }
     }
