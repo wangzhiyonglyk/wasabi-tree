@@ -1,0 +1,71 @@
+@font-face {
+  font-family: "iconfont"; /* Project id 3131694 */
+  src: url('iconfont.woff?t=1641869248797') format('woff'),
+       url('iconfont.ttf?t=1641869248797') format('truetype'),
+       url('iconfont.svg?t=1641869248797#iconfont') format('svg');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-arrow-down:before {
+  content: "\e9bd";
+}
+
+.icon-arrow-left:before {
+  content: "\e9be";
+}
+
+.icon-arrow-right:before {
+  content: "\e9bf";
+}
+
+.icon-arrow-up:before {
+  content: "\e9c0";
+}
+
+.icon-caret-down:before {
+  content: "\ea22";
+}
+
+.icon-caret-left:before {
+  content: "\ea23";
+}
+
+.icon-caret-right:before {
+  content: "\ea24";
+}
+
+.icon-caret-up:before {
+  content: "\ea29";
+}
+
+.icon-check:before {
+  content: "\ea38";
+}
+
+.icon-edit:before {
+  content: "\eaa7";
+}
+
+.icon-text:before {
+  content: "\eabc";
+}
+
+.icon-folder:before {
+  content: "\eac9";
+}
+
+.icon-folder-open:before {
+  content: "\eada";
+}
+
+.icon-delete:before {
+  content: "\eb0c";
+}
+
