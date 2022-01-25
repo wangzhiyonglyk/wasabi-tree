@@ -4,85 +4,60 @@
  * 复选框组件
  * 2022-01-11 将 tree组件独立出来
  */
-import React from "react";
+import React, { useState, useCallback, useMemo, useEffect, useImperativeHandle } from "react";
 import processText from "../libs/processText";
-import "../css/radio.css" 
-function LiView(props) {
-    //half,是从tree那里来的
-    const { data, value, half, readOnly, onSelect } = props;
-    let control = null;
-    const isChecked = (child) => {
-        let checked = false;
-        if (value && (("," + value.toString() + ",").indexOf("," + child.value + ",") > -1)) {
-            checked = true;
-        }
-        return checked;
-    }
-    if (data && data instanceof Array && data.length > 0) {
-        control = data.map((child, index) => {
-            let checked = isChecked(child);
-            return <li key={index} onClick={onSelect.bind(this, child.value, child.text, child)}  >
-            
-                <label className={("checkbox-label ")+(checked?" checked ":" ")+(half?" halfcheck ":"")} readOnly={readOnly} ></label>
-                <div className={"checktext " + (checked ? " checked" : "")} readOnly={readOnly} >{child.text}</div>
-            </li >
-        })
-    }
-    return control;
-}
-class CheckBox extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            text: "",
-            value: "",
-            oldPropsValue: null,//保存初始化的值
-        }
-        this.setValue = this.setValue.bind(this);
-        this.getValue = this.getValue.bind(this);
-        this.onSelect = this.onSelect.bind(this);
-    }
-    static getDerivedStateFromProps(props, state) {
-        if (props.value != state.oldPropsValue) {//父组件强行更新了            
-            return {
-                value: props.value || "",
-                text: processText(props.value, props.data).join(","),
-                oldPropsValue: props.value
-            }
-        }
-        return null;
-    }
-    setValue(value) {
-        this.setState({
-            value: value,
-            text: processText(value, this.props.data).join(",")
-        })
-        this.props.validate && this.props.validate(value);
-    }
-    getValue() {
-        return this.state.value;
-    }
+import func from "../libs/func";
+import "../css/radio.css"
+const isChecked = (child, value = "") => {
+    let checked = false;
 
-    /**
-     * 选择事件
-     * @param {*} value 
-     * @param {*} text 
-     * @param {*} row 
-     * @returns 
-     */
-    onSelect(value = "", text,row) {//选中事件
-        if (this.props.readOnly) {
+    if (value && (("," + value.toString() + ",").indexOf("," + child.value + ",") > -1)) {
+        checked = true;
+    }
+    return checked;
+}
+function CheckBox(props, ref) {
+    //half,是从tree那里来的
+    const [value, setValue] = useState(props.value);
+    //文本值
+    const text = useMemo(() => { return processText(value, props.data).join(",") }, [props.data, value])
+    useEffect(() => {
+        setValue((props.value ?? "") + "")
+    }, [props.value])
+
+    //对外接口
+    useImperativeHandle(ref, () => ({
+        /**
+         * 设置值
+         * @param {*} newValue 
+        */
+        setValue(newValue) {
+            setValue(newValue)
+        },
+        /**
+         * 获取值
+         * @returns 
+         */
+        getValue: () => {
+            return value;
+        }
+    }))
+
+    const { data, half, readOnly } = props;
+    const onSelect = useCallback((cValue, cText, cChild, olcValue, oldText) => {
+        if (props.readOnly) {//只读
             return;
         }
-        if (value!=null&&value!=undefined&&value!="") {//0是有效值
-            let newValue = this.state.value.toString() || ""
-            let newText = this.state.text.toString() || "";
+        if (cValue !== "") {//0是有效值
+            let newValue = olcValue.toString() || ""
+            let newText = oldText || "";
             newValue = newValue ? newValue.split(",") : [];
             newText = newText ? newText.split(",") : [];
-            if (newValue.indexOf(value.toString()) > -1) {
-                newValue.splice(newValue.indexOf(value.toString()), 1);
+            if (newValue.indexOf(cValue.toString()) > -1) {
+                //取消选中
                 try {
-                    newText.splice(newText.indexOf(text.toString()), 1);
+                    newValue.splice(newValue.indexOf(cValue.toString()), 1);
+                    newText.splice(newText.indexOf(cText.toString()), 1);
                 }
                 catch (e) {
 
@@ -90,25 +65,33 @@ class CheckBox extends React.Component {
 
             }
             else {
-                newValue.push(value+"");
-                newText.push(text+"");
+                //选中
+                newValue.push(cValue + "");
+                newText.push(cText + "");
             }
-            this.setState({
-                value: newValue.join(","),
-                text: newText.join(",")
-            })
-            this.props.validate && this.props.validate(newValue.join(","));
-            this.props.onSelect && this.props.onSelect(newValue.join(","), newText.join(","), this.props.name, row);
+            setValue(newValue.join(","));
+            props.onSelect && props.onSelect(newValue.join(","), newText.join(","), props.name, cChild);
         }
         else {
-            alert("值是空值");
+            setValue("");
+            props.onSelect && props.onSelect("", "", props.name, cChild);
         }
 
+    }, [])
+    if (data && data instanceof Array && data.length > 0) {
+        return <div className={"wasabi-form-group " + (props.className || "")}>
+            <div className={'wasabi-form-group-body' + (props.readOnly || props.disabled ? " readOnly" : "")}><ul className="wasabi-checkul radio">{
+                data.map((child, index) => {
+                    let checked = isChecked(child, value);
+                    return <li key={index} onClick={onSelect.bind(this, (child.value??""), (child.text??""), child, value, text)}  >
+                        <label className={("checkbox-label ") + (checked ? " checked " : " ") + (half ? " halfcheck " : "")} readOnly={readOnly} ></label>
+                        <div className={"checktext " + (checked ? " checked" : "")} readOnly={readOnly} >{child.text}</div>
+                    </li >
+                })
+            }</ul></div></div>
     }
-    render() {
-        const { data, half, readOnly } = this.props;
-        const liprops = { data, half, readOnly, onSelect: this.onSelect,value:this.state.value };
-        return <div className={"wasabi-form-group "+ (this.props.className || "") }> <div className={'wasabi-form-group-body' + (this.props.readOnly || this.props.disabled ? " readOnly" : "")}><ul className="wasabi-checkul" ><LiView {...liprops} ></LiView> {this.props.children} </ul></div></div>
-    }
+    return null;
 }
-export default CheckBox;
+export default React.memo(React.forwardRef(CheckBox), (pre, next) => {
+    return !func.diff(pre, next)
+})

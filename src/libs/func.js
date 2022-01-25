@@ -228,7 +228,7 @@ func.cookies = {
         let exp = new Date();
         exp.setTime(exp.getTime() - 1);
         let cval = this.get(key);
-        if (cval != null)
+        if (cval !==null)
             document.cookie = key + "=" + cval + ";expires=" + exp.toGMTString();
     }
 }
@@ -394,7 +394,7 @@ func.uuid = function () {
  *  @param {bool} deep 是否深层遍历  
  * @returns 
  */
-func.diff = function (objA = null, objB = null, deep = true) {//
+ func.diff = function (objA = null, objB = null, deep = true) {//
     if (objA === objB) {//直接相等，返回
         return false;
     }
@@ -402,7 +402,7 @@ func.diff = function (objA = null, objB = null, deep = true) {//
         return true;
     }
     if (typeof objA === "function") {//函数
-        return objA.toString() === objB.toString();
+        return objA.toString() !== objB.toString();
     }
     else if (typeof objA === "object") {//对象
         //先拿所有的属性 
@@ -431,7 +431,10 @@ func.diff = function (objA = null, objB = null, deep = true) {//
                 }
                 else {
                     //浅比较
-                    if (propA !== propB) {
+                    if(typeof propA==="function"){//如果属性是函数
+                        return objA.toString() !== objB.toString();
+                    } 
+                    else if (propA !== propB) {
                         return true;
                     }
                 }

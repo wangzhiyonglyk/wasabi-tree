@@ -58,8 +58,8 @@ function Demo(props){
 |clearChecked|func|清除全部勾选节点|null|null|
 |checkedAll|func|勾选全部节点|null|data|
 |setClick|func|设置节点单击选中，并且可见|id|null|
-|remove|func|删除某个节点|row(必须包含id)|null|
-|append|func|追加某个节点|children|null|
+|remove|func|删除某个节点|node(必须包含id)|null|
+|append|func|追加某个节点|children,node|null|
 |filter|func|过滤节点|value|null|
 |adjust|func|重新调整容器|null|null|
 

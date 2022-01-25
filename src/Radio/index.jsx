@@ -4,86 +4,58 @@
  * 单选框集合组件
  * 2022-01-11 将 tree组件独立出来
  */
-import React, { Component } from "react";
-import processText from "../libs/processText";
+import React, { useState, useCallback, useEffect ,useImperativeHandle} from "react";
+import func from "../libs/func";
 import "../css/radio.css"
+function Radio(props, ref) {
+    const [value, setValue] = useState(props.value);
+    useEffect(() => {
+        setValue(props.value)
+    }, [props.value])
+    const onSelect = useCallback((v, t, c) => {
+        setValue(v);
+        props.onSelect && props.onSelect(v, t, c);
+    }, [])
 
-function LiView(props) {
-    let control = null;
-    const { data, value, readOnly, onSelect } = props;
+    //对外接口
+    useImperativeHandle(ref, () => ({
+        /**
+         * 设置值
+         * @param {*} newValue 
+         */
+        setValue: (newValue) => {
+            setValue(newValue)
+        },
+        /**
+         * 获取值
+         * @returns 
+         */
+        getValue: () => {
+            return value;
+        }
+    }))
+
+    const { data, readOnly } = props;
     if (data && data instanceof Array && data.length > 0) {
         let className = "wasabi-radio-btn " + (readOnly ? " readOnly" : "");
-        control = data.map((child, index) => {
-            return (
-                <li key={index}>
-                    <div className={className + ((value && (value + "") === (child.value + "")) ? " checkedRadio" : "")}
-                        onClick={onSelect.bind(this, child.value, child.text, child)}><i></i></div>
-                    <div className={"radiotext " + (readOnly ? " readOnly" : "") + ((value && (value + "") === (child.value + "")) ? " checkedRadio" : "")} onClick={onSelect.bind(this, child.value, child.text, child)}>{child.text}
-                    </div>
-                </li>
-            );
-        })
+        return <div className={"wasabi-form-group " + (props.className || "")}>
+            <div className={'wasabi-form-group-body' + (props.readOnly || props.disabled ? " readOnly" : "")}><ul className="wasabi-checkul radio">
+                {
+                    data.map((child, index) => {
+                        return (
+                            <li key={index}>
+                                <div className={className + (((value ?? "") + "") === ((child.value ?? "") + "") ? " checkedRadio" : "")}
+                                    onClick={onSelect.bind(this, child.value, child.text, child)}><i></i></div>
+                                <div className={"radiotext " + (readOnly ? " readOnly" : "") + ((((value ?? "") + "") === ((child.value ?? "") + "")) ? " checkedRadio" : "")} onClick={onSelect.bind(this, child.value, child.text, child)}>{child.text}
+                                </div>
+                            </li>
+                        );
+                    })
+                }
+            </ul></div></div>
     }
-    return control;
+    return null;
 }
-class Radio extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            text: "",
-            value: "",
-            oldPropsValue: "",//保存初始化的值
-        }
-        this.setValue = this.setValue.bind(this);
-        this.getValue = this.getValue.bind(this);
-        this.onSelect = this.onSelect.bind(this);
-
-    }
-    static getDerivedStateFromProps(props, state) {
-        if (props.value != state.oldPropsValue) {//父组件强行更新了            
-            return {
-                value: props.value || "",
-                text: processText(props.value, props.data).join(","),
-                oldPropsValue: props.value
-            }
-        }
-        return null;
-    }
-    setValue(value) {
-        this.setState({
-            value: value,
-            text: processText(value, this.props.data).join(",")
-        })
-        this.props.validate && this.props.validate(value);
-    }
-    getValue() {
-        return this.state.value;
-    }
-
-    onSelect(value = "", text, name, row) {
-
-        if (this.props.readOnly) {
-            return;
-        }
-        if (value != null && value != undefined && value != "") {//0是有效值
-            //更新
-            this.setState({
-                value: value + "",
-                text: text + "",
-            })
-            this.props.validate && this.props.validate(value + "");
-            this.props.onSelect && this.props.onSelect(value + "", text, name, row);
-        }
-        else {
-            alert("值是空值");
-        }
-
-    }
-    render() {
-        const { data, readOnly } = this.props;
-        const liProps = { data, readOnly, value: this.state.value, onSelect: this.onSelect }
-        return <div className={"wasabi-form-group " + (this.props.className || "") }> <div className={'wasabi-form-group-body'+ (this.props.readOnly || this.props.disabled ? " readOnly" : "")}><ul className="wasabi-checkul radio"> <LiView {...liProps} onSelect={this.onSelect.bind(this)}></LiView> {this.props.children}</ul></div></div>
-    }
-}
-
-export default Radio;
+export default React.memo(React.forwardRef(Radio), (pre, next) => {
+    return !func.diff(pre, next)
+})

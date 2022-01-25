@@ -19,7 +19,7 @@ class Text extends Component {
         this.setValue = this.setValue.bind(this);
     }
     static getDerivedStateFromProps(props, state) {
-        if (props.value != state.oldPropsValue) {
+        if (props.value !== state.oldPropsValue) {
             //就是说原来的初始值发生改变了，说明父组件要更新值
             return {
                 value: props.value || "",
