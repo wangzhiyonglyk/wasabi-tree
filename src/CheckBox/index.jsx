@@ -6,7 +6,7 @@
  */
 import React, { useState, useCallback, useMemo, useEffect, useImperativeHandle } from "react";
 import processText from "../libs/processText";
-import func from "../libs/func";
+import {diff} from "../libs/func";
 import "../css/radio.css"
 const isChecked = (child, value = "") => {
     let checked = false;
@@ -93,5 +93,5 @@ function CheckBox(props, ref) {
     return null;
 }
 export default React.memo(React.forwardRef(CheckBox), (pre, next) => {
-    return !func.diff(pre, next)
+    return diff(pre, next)
 })

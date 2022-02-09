@@ -5,7 +5,7 @@
  * 2022-01-11 将 tree组件独立出来
  */
 import React, { useState, useCallback, useEffect ,useImperativeHandle} from "react";
-import func from "../libs/func";
+import {diff} from "../libs/func";
 import "../css/radio.css"
 function Radio(props, ref) {
     const [value, setValue] = useState(props.value);
@@ -57,5 +57,5 @@ function Radio(props, ref) {
     return null;
 }
 export default React.memo(React.forwardRef(Radio), (pre, next) => {
-    return !func.diff(pre, next)
+    return !diff(pre, next)
 })

@@ -13,23 +13,25 @@ function Demo(props){
 |  属性名   | 类型  |说明|默认值|
 |  ----  | ----  |----  |----  |
 |name| string|树名称|null|
-|idField| string|数据字段值名称|id|
-|parentField| string|数据字段父节点名称|pId|
-|textField| string|数据字段文本名称|text|
+|idField| string|数据字段属性名|id|
+|parentField| string|父节点属性名|pId|
+|textField| string|数据字段属性名|text|
+|chidrenField| string|子节点属性名|text|
 | url| string|```后台查询地址，第一次自动查询，如果设置asyncAble为true，而oAsync为空，则展开节点时自动根据这个地址查询```|null|
 | params| object|向后台传输的额外参数|null|
 | ```dataSource```| string|ajax的返回的数据源中哪个属性作为数据源,可以分层比如``` data.list ```)|data|
 |headers|array|请求时传的表头参数|null|
 | data| array|父组件传的固定数据|null|
-|```simpleData``` |bool|是否使用简单的数据格式，即没有children的数组，通过pId,id自动组装成树结构|true|
+|```simpleData``` |bool|是否使用简单的数据格式，即没有children的一维数组，通过pId,id自动组装成树结构,目的是为了后端sql查询出来的数据，如果数量过大，会有性能问题，建议后端回传标准的树结构|false|
 |dotted| bool|是否有虚线|true|
-|selectAble| bool|是否允许勾选|true|
+|selectAble| bool|是否允许勾选|false|
 |checkStyle| oneOf(["checkbox", "radio", func])|单选还是多选,可以通过函数返回自定义组件，```func(row){retrun node;}``` 注意： ```宽度20px,高度 30px```|checkbox
 |checkType| object|勾选对于父子节点的关联关系```[y]代表选中，[n]代表取消 [p]父节点 [s]代表子节点``` |```{ "y": "ps", "n": "ps" }```|
 | radioType| oneOf(["level", "all"])|单选时影响的层级```[level]同级 [all]整个树```|```all```|
 | renameAble| bool|是否允许重命名|false|
 | removeAble| bool|是否允许移除|false|
 |asyncAble| bool|节点是否可以异步加载数据|false|
+|textFormatter|func(row)|节点文本格式化函数 例子：``` (row)=>{return <div className="red">{row.text}</div>```|null|
 #### 事件
 |  属性名   | 类型  |说明|参数|返回值|
 |  ----  | ----  |----  |----  |---|
@@ -50,7 +52,7 @@ function Demo(props){
 | beforeRightClick| func|鼠标右键前事件|id, text, row|```true(同意),false(不同意)```
 
 
-#### 子组件方法（ref)
+#### 组件方法（ref)
 |  属性名| 类型  |说明|参数|返回值|
 |  ----  | ----  |----  |----  |---|
 |getChecked|func|获取勾选节点|null|data|
@@ -76,7 +78,7 @@ function Demo(props){
 |iconOpen |string  |[父节点]展开图标|icon-folder|
 |arrowUnFoldIcon|node|节点展开的箭头图标组件|icon-arrow-down|
 |arrowFoldIcon|node|节点折叠的箭头图标组件|icon-arrow-right|
-|open|bool|是否处于打开状态|true|
+|open|bool|是否处于打开状态|false|
 |checked |bool|是否被勾选|false|
 |selectAble|bool|是否允许勾选|false|
 |draggAble|bool|是否允许拖动|false|

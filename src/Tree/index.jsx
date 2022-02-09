@@ -12,11 +12,12 @@ create by wangzhiyong 创建树组件
    2022-01-07 修复树节点中文本节点宽度的bug
    2022-01-11 将tree组件独立出来
    2022-01-18 将tree组件全部改为hook
+   2022-01-27 优化代码
  */
-import React, { Component } from "react";
+import React from "react";
 import TreeContainer from "./TreeContainer";
 
 function Tree(props, ref) {
   return <TreeContainer {...props} ref={ref} componentType={"tree"}></TreeContainer>
 }
-export default React.memo(React.forwardRef(Tree), (pre, next) => { return !func.diff(pre, next, false) });
+export default React.memo(React.forwardRef(Tree));
