@@ -15,7 +15,7 @@ function Radio(props, ref) {
     const onSelect = useCallback((v, t, c) => {
         setValue(v);
         props.onSelect && props.onSelect(v, t, c);
-    }, [])
+    }, [props])
 
     //对外接口
     useImperativeHandle(ref, () => ({

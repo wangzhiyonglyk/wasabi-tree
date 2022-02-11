@@ -163,7 +163,7 @@ function TreeNode(props) {
                 input.focus();
             }
         }
-    }, [rename])
+    }, [rename,textid])
 
     /***
      * 注意此处所有的方法
@@ -211,7 +211,7 @@ function TreeNode(props) {
             setRename(false);
             props.onRename && props.onRename(id, text, row, value);
         },
-        [],
+        [props],
     );
 
 
@@ -237,7 +237,7 @@ function TreeNode(props) {
             let row = TreeNodeFormat(props)
             onNodeRename(row.id, row.text, row, value)
         },
-        [props],
+        [props,onNodeRename],
     );
     /**
      * 回车
@@ -249,7 +249,7 @@ function TreeNode(props) {
                 onNodeRename(row.id, row.text, row, event.target.value.trim())
             }
         },
-        [props],
+        [props,onNodeRename],
     )
     /**
      * 删除之前
@@ -335,7 +335,7 @@ function TreeNode(props) {
             }
         }
 
-    }, [props])
+    }, [props,nodeid])
     /**
      * 容器离开事件
      * @param {} event 
@@ -346,7 +346,7 @@ function TreeNode(props) {
         document.getElementById(nodeid).style.borderBottom = "none";
         document.getElementById(nodeid).style.backgroundColor = null;
 
-    }, [])
+    }, [nodeid])
     /**
      * 容器组件的停靠事件
      */
@@ -374,7 +374,7 @@ function TreeNode(props) {
         }
 
 
-    }, [props])
+    }, [props,nodeid])
 
     return <NodeView
         {...props}

@@ -77,7 +77,7 @@ function CheckBox(props, ref) {
             props.onSelect && props.onSelect("", "", props.name, cChild);
         }
 
-    }, [])
+    }, [props])
     if (data && data instanceof Array && data.length > 0) {
         return <div className={"wasabi-form-group " + (props.className || "")}>
             <div className={'wasabi-form-group-body' + (props.readOnly || props.disabled ? " readOnly" : "")}><ul className="wasabi-checkul radio">{

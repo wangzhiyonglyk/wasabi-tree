@@ -14,9 +14,9 @@ import TreeNode from "./TreeNode.jsx";
 function TreeView(props) {
     let nodeControl = [];
     //全局属性
-    const { componentType,  selectAble, checkStyle, renameAble, removeAble, asyncAble } = props;
+    const { componentType,  selectAble, checkStyle, renameAble, removeAble, draggAble,dropAble, asyncAble } = props;
     //得到传下去的属性
-    const treeProps = { componentType,selectAble, checkStyle, renameAble, removeAble, asyncAble, clickId: props.clickId, loadingId: props.loadingId };
+    const treeProps = { componentType,selectAble, checkStyle, renameAble, removeAble,draggAble,dropAble,  asyncAble, clickId: props.clickId, loadingId: props.loadingId };
     //全局事件
     const treeEvents = {
         beforeDrag: props.beforeDrag,
@@ -57,5 +57,4 @@ function TreeView(props) {
             {nodeControl}
          </ul>
 }
-
 export default React.memo(TreeView);

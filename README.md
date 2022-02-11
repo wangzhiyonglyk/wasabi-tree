@@ -1,3 +1,5 @@
+## 树组件的使用说明
+[toc]
 #### 下载方式
 npm install wasabi-tree
 #### 引入方式
@@ -9,7 +11,30 @@ function Demo(props){
     return <Tree data={props.data}></Tree>
 }
 ```
-#### 属性
+
+#### data的数组中的item的格式
+data是一个数组，节点数据字段的默认值如下，完整的属性请下面的节点属性一章
+``` javascript
+        isParent = null;//是否是父节点
+       id = "";//值
+       pId="";//父节点
+       text = "";//标题
+       title = "";//提示信息
+       iconCls = "";//默认图标
+       iconClose = "";//[父节点]关闭图标
+       iconOpen = "";//[父节点]打开图标
+       open = false;//是否处于打开状态
+       checked = false;//是否被勾选
+       selectAble = false;//是否允许勾选
+       draggAble = false;//是否允许拖动，
+       dropAble = false;//是否允许停靠
+       href = null;//节点的链接
+       hide = false;//是否隐藏
+       children = null;//子节点
+       children=null;
+```
+
+#### 树属性
 |  属性名   | 类型  |说明|默认值|
 |  ----  | ----  |----  |----  |
 |name| string|树名称|null|
@@ -30,6 +55,8 @@ function Demo(props){
 | radioType| oneOf(["level", "all"])|单选时影响的层级```[level]同级 [all]整个树```|```all```|
 | renameAble| bool|是否允许重命名|false|
 | removeAble| bool|是否允许移除|false|
+| draggAble| bool|是否允许拖动|false|
+| dropAble| bool|是否允许停靠|false|
 |asyncAble| bool|节点是否可以异步加载数据|false|
 |textFormatter|func(row)|节点文本格式化函数 例子：``` (row)=>{return <div className="red">{row.text}</div>```|null|
 #### 事件
