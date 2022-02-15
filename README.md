@@ -1,8 +1,147 @@
-## 树组件的使用说明
+
+## <div style="text-align:center">树组件开发文档</div>
 [toc]
-#### 下载方式
+### 1.开发目的
+1. 实现对树组件的增删改查
+2. 实现树组件的拖动，停靠
+3. 实现树组件的父子勾选，单选
+4. 实现树组件的节点图标，节点，虚线，皮肤的自定义
+5. 10万数据量高性能渲染
+6. 子节点数据异步加载
+7. 提供外部调用api，获取树组件各类数据
+8. 实现树组件事件的监听与取消
+9. 实现容器高度变化自适应
+### 2 树组件性能设计
+#### 2.1 性能策略
+##### 2.3.1 虚拟列表
+1. 容器渲染完成后，拿到可见高度，通过节点行高，得到可见区域的节点个数
+2. 要渲染的数据是```visibleData```：上部预留区域+可见区域-下部预留区域
+3. 扁平化后切割数据，得到渲染数据:```visibleData```
+4. 监听容器的滚动事件，得到起始下标，重新计算要渲染的数据,并且进行了节流
+#####  2.3.2 预处理数据，标准化节点数据结构：```id,pId,text,children```
+通过字段属性名，标准化节点这四个字段值，方便对树节点的渲染与操作
+##### 2.3.3 预处理数据，增加节点路径```_path```
+1. 对传递的数据先进行预处理，设置节点_path属性，保存节点在树结构的路径
+2. 能够通过_path快速找到节点，及祖先节点，快速操作树节点的勾选，增，删，修改，移动
+3. 通过_path字段来确实节点前面空白占位宽度大小，扁平化后依然能显示层级关系
+##### 2.3.4  预处理数据，增加```_isLast```
+通过增加这个字段代表是否当前层级的最后一个节点，用来方便画虚线
+##### 2.3.5 直接操作原data，不使用扩展运算符等浅复制操作
+浅复制是耗费性能的，在预处理与扁平化等算法中不进行浅复制，否则当数量过大，耗时极速增加
+##### 2.3.6 提供append，remove方法用于追加与删除节点
+树组件后期可以通过append，remove来追加，删除节点，避免父组件更新data，从而导致整个组件重新渲染
+##### 2.3.7 缓存所有方法与组件，避免重复渲染，最大限度的优化组件
+利用useCallBack,useReduce,memo等方式来减少重定义与渲染次数
+#### 2.2 十万数据量的渲染情况
+ 2.2.1 预处理数据平均时长：```约108ms```
+ 2.2.2 扁平化数据平均时长：```约25ms```
+ 2.2.3 首屏时间:```约0.8s```<sup style="color:#840909">需要继续优化</sup>
+ 2.2.4 删除节点：```约73ms```
+ 2.2.4 移动节点：```约126ms```
+
+### 3. 树组件的设计思路
+#### 3.1 树的关系图
+```Mermaid
+classDiagram
+    class TreeContainer{
+    树组件的容器，负责数据处理
+    }
+    class TreeView{
+        树组件View渲染，
+    }
+
+    class TreeNode{
+        树节点，处理节点事件
+    }
+    class NodeView{
+        树节点视图，负责渲染
+    }
+    class CheckBox{
+        复选框
+    }
+    class Radio{
+        单选框
+    }
+ 
+    TreeContainer-->TreeView:树组件View
+    TreeView-->TreeNode:树节点
+    TreeNode-->NodeView:树节点View
+    NodeView-->CheckBox:复选框
+      NodeView-->Radio:单选框
+    getVisibleCount-->TreeContainer:容器高度及可见节点数
+    getData-->TreeContainer:url请求数据
+    preprocess-->TreeContainer:预处理数据
+    handlerVisibleData-->TreeContainer:得到可见区域数据
+    func-->preprocess:【simpleData】转树结构
+    func-->handlerVisibleData:扁平化数据
+
+```
+#### 3.2 树的数据流图示
+```plantuml
+@startuml
+父组件-->TreeContainer类:将父组件传递的ata
+父组件-->TreeContainer类:通过父组件传递的url加载后的data
+preprocess数据预加工类-->TreeContainer类:遍历data，生成id，pId,text,children必需属性，追加_path属性，isLast属性，方便后期各类树操作
+getVisibleCount函数-->TreeContainer类:计算树容器的高度visibleHeight，得到可视区节点个数visibleCount
+handlerVisibleDat函数-->TreeContainer类:通过预处理后的data,visibleCount等参数得扁平化后数据flatData,filterData,visibleData等
+@enduml
+```
+```plantuml
+@startuml
+
+TreeContainer类-->TreeView类:传递visibleData,events,其他props，渲染可见的节点
+TreeView类-->TreeNode类:提取节点所需的props，event等，渲染具体的节点
+TreeNode类-->NodeView类:设置节点的事件，透传props，渲染视图
+@enduml
+```
+#### 3.3 函数与类的作用
+##### 3.3.1 getVisibleCount-获取可见区域节点数量
+3. 根据容器高度得到可渲染的数据个数visibleCount
+2. 得到可见区域的起始结束下标(startIndex,endIndex),```不是了可见数据visibleData的起始下标，因为有上下预留区```
+##### 3.3.2 handlerVisibleData-得到可见数据等
+3. 将data扁平化得到flatData
+2.  得到```visibleData[可见数据]```,```filterData【过滤的数据】```,```flatData【扁平化数据】```,```data[原始可操作数据]```
+3. 得到 ```sliceBeginIndex[切割的起始下标]```,```sliceEndIndex[切割的结束下标]```
+4. 在滚动过程不再扁平化，直接使用上次的flatData
+5. 除非有新的filterValue,或者Data,再重新扁平化
+##### 3.3.3 getData-请求数据
+如果传递的url，进行fetch请求，得到传递的数据
+##### 3.3.4 func-公共函数库
+3. 提供公共函数，比如将简单数据转成树结构
+2. diff算法判断是否更新
+3. 树结构数据扁平化
+##### 3.3.6 preprocess-预处理数据
+3. 预处理数据，方便后期树节点的操作
+2. 通过idFeild,parentFeild,textFeild,childFeild得到·```id，pId,text,children```属性
+3. ```id[key]```,```pId[父节点id]```,```text[文本】```,```children[子节点]```
+4. 生成```_path```属性，即节点的路径，用于寻址
+5. 生成```_isLast```属性，是否当前层级的最后一个节点，用于生成虚线
+##### 3.3.6 treeFunc-树的操作
+3. 树节点的寻址
+2. 树节点的增删改查
+3. 树节点选中，勾选
+4. 树节点的筛选
+##### 3.3.7 myReducer-树的reduce函数
+处理树组件的state
+##### 3.3.8 TreeContainer-树的容器
+3. 调用```【getVisibleCount】``` ```【handlerVisibleData】```进行第一次渲染
+2. 处理树所有的事件，调用```[myReducer]```得到新的state
+3. 提供ref调用的方法，方便获树相关的数据
+4. 将state传递给```[TreeView]```
+##### 3.3.9 TreeView-树的视图
+3. 处理节点是否为父节点
+2. 将所需要属性与事件传递给树节点
+3. 渲染树组件
+##### 3.3.10 TreeNode-树节点容器
+3. 处理树节点的所有事件，回传给树容器
+##### 3.3.11 NodeView,CheckBox,Radio-树节点视图,复选框，单选框
+ NodeView：渲染树的节点
+ CheckBox：复选框
+ Radio：单选框
+### 4. 树组件的使用说明
+#### 2.1 下载方式
 npm install wasabi-tree
-#### 引入方式
+#### 2.2 引入方式
 ``` javascript
 import Tree from "wasabi-tree";
 import "wasabi-tree/lib/index.css";
@@ -11,8 +150,7 @@ function Demo(props){
     return <Tree data={props.data}></Tree>
 }
 ```
-
-#### data的数组中的item的格式
+#### 2.3 data的数组中的item的格式
 data是一个数组，节点数据字段的默认值如下，完整的属性请下面的节点属性一章
 ``` javascript
         isParent = null;//是否是父节点
@@ -32,8 +170,7 @@ data是一个数组，节点数据字段的默认值如下，完整的属性请�
        hide = false;//是否隐藏
        children = null;//子节点
 ```
-
-#### 树属性
+#### 2.4 树属性
 |  属性名   | 类型  |说明|默认值|
 |  ----  | ----  |----  |----  |
 |name| string|树名称|null|
@@ -58,7 +195,7 @@ data是一个数组，节点数据字段的默认值如下，完整的属性请�
 | dropAble| bool|是否允许停靠|false|
 |asyncAble| bool|节点是否可以异步加载数据|false|
 |textFormatter|func(row)|节点文本格式化函数 例子：``` (row)=>{return <div className="red">{row.text}</div>```|null|
-#### 事件
+#### 2.5 事件
 |  属性名   | 类型  |说明|参数|返回值|
 |  ----  | ----  |----  |----  |---|
 | onClick| func|单击的事件|id,text,row|
@@ -76,9 +213,7 @@ data是一个数组，节点数据字段的默认值如下，完整的属性请�
 | beforeRemove| func|删除前事件|id, text, row|```true(同意),false(不同意)```
 | beforeRename| func|重命名前事件|id, text, row|```true(同意),false(不同意)```
 | beforeRightClick| func|鼠标右键前事件|id, text, row|```true(同意),false(不同意)```
-
-
-#### 组件方法（ref)
+#### 2.6 组件方法（ref)
 |  属性名| 类型  |说明|参数|返回值|
 |  ----  | ----  |----  |----  |---|
 |getChecked|func|获取勾选节点|null|data|
@@ -90,8 +225,7 @@ data是一个数组，节点数据字段的默认值如下，完整的属性请�
 |append|func|追加某个节点|children,node|null|
 |filter|func|过滤节点|value|null|
 |adjust|func|重新调整容器|null|null|
-
-#### 节点Node属性
+#### 2.7 节点Node属性
 |  属性名   | 类型  |说明|默认值|
 |  ----  | ----  |----  |---- |
  |isParent|bool|是否是父节点|null|
