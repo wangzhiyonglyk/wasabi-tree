@@ -8,7 +8,7 @@ date :2022-01-07 修复tregrid单击联动的bug
 import React, { useState, useReducer, useCallback, useEffect, useImperativeHandle, useRef } from "react";
 import PropTypes from "prop-types";
 import { treeDataToFlatData, getSource, uuid, clone } from "../libs/func";
-import {preprocess,preprocessNode} from "../libs/preprocess.js";
+import { preprocess, preprocessNode } from "../libs/preprocess.js";
 import { setChecked, setRadioChecked, findNodeById, clearChecked, checkedAll, removeNode, renameNode, moveAterNode, moveBeforeNode, moveInNode, setOpen, appendChildren, getChecked, filter, updateNode } from "./treeFunc";
 import api from "wasabi-api"
 import "../css/tree.css"
@@ -186,7 +186,7 @@ const myReducer = function (state, action) {
                             data = setChecked(state.data, node, !!payload.checked, payload.checkType);
                         }
                         else if (payload.checkStyle === "radio") {
-                            data = setRadioChecked(state.data,node, !!payload.checked, payload.radioType);
+                            data = setRadioChecked(state.data, node, !!payload.checked, payload.radioType);
                         }
                         preState = handlerVisibleData(state, state.sliceBeginIndex, state.sliceEndIndex, data);
                     }
@@ -260,7 +260,7 @@ const myReducer = function (state, action) {
                 preState = handlerVisibleData(state, state.sliceBeginIndex, state.sliceEndIndex, data);
                 break;
             case "remove":
-                data = removeNode(state.data, payload);
+                data = removeNode(state.data, {id:payload});
                 preState = handlerVisibleData(state, state.sliceBeginIndex, state.sliceEndIndex, data);
                 break;
             //追加
@@ -463,13 +463,12 @@ function TreeContainer(props, ref) {
          * 单击节点
          */
         setClick(id) {
-            if(id&&id!==state.clickId)
-            {
+            if (id && id !== state.clickId) {
                 dispatch({ type: "setClick", payload: id });
                 treegrid?.current?.setFocus(id);  //如果是树表格或者交叉表
                 onScroll();
             }
-           
+
         },
         /**
          * 展开或折叠节点
@@ -510,10 +509,10 @@ function TreeContainer(props, ref) {
         * 更新
         * @param {*} node 
         */
-         update(node){
-            if(node){
-                node= preprocessNode(node, props.idField, props.parentField, props.textField, props.childrenField);
-                dispatch({ type: "update", payload:node })
+        update(node) {
+            if (node) {
+                node = preprocessNode(node, props.idField, props.parentField, props.textField, props.childrenField);
+                dispatch({ type: "update", payload: node })
             }
         },
         /**
