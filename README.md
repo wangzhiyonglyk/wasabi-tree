@@ -207,7 +207,7 @@ data是一个数组，节点数据字段的默认值如下，完整的属性请�
 | onRightClick| func|右键菜单|id, text, row|
 | onDrag| func|拖动事件|id, text, row|
 | onDrop| func|停靠事件|dragNode(移动节点), dropNode(停靠节点), dragType(停靠方式)|
-|  onAsync| func|节点异步查询，为null，则会通过url来处理|id, text, row|data,即异步加载后节点数据|
+| onAsync| func|节点异步查询，为null，则会通过url来处理|id, text, row|data,即异步加载后节点数据|
 | beforeDrag| func|拖动前事件|id, text, row|```true(同意),false(不同意)```|
 | beforeDrop| func|停靠前事件|dragNode(移动节点), dropNode(停靠节点), dragType(停靠方式|```true(同意),false(不同意)```
 | beforeRemove| func|删除前事件|id, text, row|```true(同意),false(不同意)```
@@ -223,6 +223,7 @@ data是一个数组，节点数据字段的默认值如下，完整的属性请�
 |setClick|func|设置节点单击选中，并且可见|id|null|
 |remove|func|删除某个节点|node(必须包含id)|null|
 |append|func|追加某个节点|children,node|null|
+|update|func|更新某个节点|node|null|
 |filter|func|过滤节点|value|null|
 |adjust|func|重新调整容器|null|null|
 #### 2.7 节点Node属性

@@ -8,14 +8,14 @@ date :2022-01-07 修复tregrid单击联动的bug
 import React, { useState, useReducer, useCallback, useEffect, useImperativeHandle, useRef } from "react";
 import PropTypes from "prop-types";
 import { treeDataToFlatData, getSource, uuid, clone } from "../libs/func";
-import preprocess from "../libs/preprocess.js";
-import { setChecked, setRadioChecked, findNodeById, clearChecked, checkedAll, removeNode, renameNode, moveAterNode, moveBeforeNode, moveInNode, setOpen, appendChildren, getChecked, filter } from "./treeFunc";
+import {preprocess,preprocessNode} from "../libs/preprocess.js";
+import { setChecked, setRadioChecked, findNodeById, clearChecked, checkedAll, removeNode, renameNode, moveAterNode, moveBeforeNode, moveInNode, setOpen, appendChildren, getChecked, filter, updateNode } from "./treeFunc";
 import api from "wasabi-api"
 import "../css/tree.css"
 import config from "./config";
 import TreeView from "./TreeView";
 /**
-* 容器高度x
+* 容器高度
 */
 let containerHeight;
 /**
@@ -183,10 +183,10 @@ const myReducer = function (state, action) {
                     let node = findNodeById(state.data, payload.id);
                     if (node) {
                         if (payload.checkStyle === "checkbox") {
-                            data = setChecked(state.data, payload.node, !!payload.checked, payload.checkType);
+                            data = setChecked(state.data, node, !!payload.checked, payload.checkType);
                         }
                         else if (payload.checkStyle === "radio") {
-                            data = setRadioChecked(state.data, payload.node, !!payload.checked, payload.radioType);
+                            data = setRadioChecked(state.data,node, !!payload.checked, payload.radioType);
                         }
                         preState = handlerVisibleData(state, state.sliceBeginIndex, state.sliceEndIndex, data);
                     }
@@ -216,7 +216,7 @@ const myReducer = function (state, action) {
             case "onRemove":
                 data = removeNode(state.data, payload.row);
                 preState = handlerVisibleData(state, state.sliceBeginIndex, state.sliceEndIndex, data);
-            
+
                 break;
             //停靠
             case "onDrop":
@@ -245,7 +245,7 @@ const myReducer = function (state, action) {
                 } else {
                     preState = state;
                 }
-              
+
 
                 break;
             /**
@@ -267,6 +267,11 @@ const myReducer = function (state, action) {
             case "append":
                 const { children, row } = payload;
                 data = appendChildren(state.data, children, row);
+                preState = handlerVisibleData(state, state.sliceBeginIndex, state.sliceEndIndex, data);
+                break;
+            //更新
+            case "update":
+                data = updateNode(state.data, payload);
                 preState = handlerVisibleData(state, state.sliceBeginIndex, state.sliceEndIndex, data);
                 break;
             default:
@@ -307,7 +312,7 @@ function TreeContainer(props, ref) {
     }, [props]);
     const onRemove = useCallback((id, text, row) => {
         if (window.confirm("您确定删除【" + text + "]吗")) {
-       
+
             dispatch({ type: "onRemove", payload: { id, text, row } })
             props.onRemove && props.onRemove(id, text, row);
         }
@@ -316,7 +321,7 @@ function TreeContainer(props, ref) {
         dispatch({ type: "onRename", payload: { id, text, row, newText } });
         props.onRename && props.onRename(id, text, row, newText);
     }, [props]);
-    const onDrop = useCallback((dragNode, dropNode, dragType) => {  dispatch({ type: "onDrop", payload: { dragNode, dropNode, dragType } }) }, []);
+    const onDrop = useCallback((dragNode, dropNode, dragType) => { dispatch({ type: "onDrop", payload: { dragNode, dropNode, dragType } }) }, []);
 
     //加载子节点成功
     const loadSuccess = useCallback((res) => {
@@ -458,9 +463,13 @@ function TreeContainer(props, ref) {
          * 单击节点
          */
         setClick(id) {
-            dispatch({ type: "setClick", payload: id });
-            treegrid?.current?.setFocus(id);  //如果是树表格或者交叉表
-            onscroll();
+            if(id&&id!==state.clickId)
+            {
+                dispatch({ type: "setClick", payload: id });
+                treegrid?.current?.setFocus(id);  //如果是树表格或者交叉表
+                onScroll();
+            }
+           
         },
         /**
          * 展开或折叠节点
@@ -498,10 +507,20 @@ function TreeContainer(props, ref) {
             }
         },
         /**
-         * 
+        * 更新
+        * @param {*} node 
+        */
+         update(node){
+            if(node){
+                node= preprocessNode(node, props.idField, props.parentField, props.textField, props.childrenField);
+                dispatch({ type: "update", payload:node })
+            }
+        },
+        /**
+         *调整容器 
          */
         adjust() {
-            onscroll();
+            onScroll();
         }
     }))
     //父组件加载数据

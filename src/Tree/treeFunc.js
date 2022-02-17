@@ -338,6 +338,32 @@ export function removeNode(data, node) {
 
 }
 /**
+ * 更新节点
+ * @param {*} data 
+ * @param {*} newNode 新节点
+ * @returns 
+ */
+ export function updateNode(data,newNode) {
+    if(Array.isArray(data)&&data.length>0)
+    {
+       let  node = newNode._path?findNodeByPath(data, (newNode._path)): findNodeById(data,newNode.id);
+       if(node){
+          for(let key in newNode){
+              node[key]=newNode[key]
+          }
+          node.children= setChildrenPath(node.id,node._path,newNode.children)
+          return data;
+       }   
+    }
+    else{
+        return [newNode];
+    }
+ 
+    return data;
+
+
+}
+/**
  * 移动到节点中
  * @param {*} data 
  * @param {*} dragNode 移动节点

@@ -14,7 +14,7 @@ import {toTreeData} from "../libs/func"
  * @returns 
  */
 
-let preprocess = function (data = [], pId = "", path = [], idField = "id", parentField = "pId", textField = "text", childrenField = "children", simpleData) {
+ export function preprocess (data = [], pId = "", path = [], idField = "id", parentField = "pId", textField = "text", childrenField = "children", simpleData) {
     let result=[];
     if (Array.isArray(data)) {
         data = simpleData ? toTreeData(data, idField, parentField, textField) : data;
@@ -29,4 +29,21 @@ let preprocess = function (data = [], pId = "", path = [], idField = "id", paren
     }
     return result;
 }
-export default preprocess;
+
+ /**
+     * 预处理某个节点
+     * @param {*} node 节点
+      * @param {*} idField id字段
+    * @param {*} parentField 父节点字段
+    * @param {*} textField 文本字段
+    * @param {*} childrenField 子节点字段
+     */
+  export function preprocessNode(node,idField = "id", parentField = "pId", textField = "text", childrenField = "children")
+  {
+    node.id=node[idField];
+    node.pId=node[parentField];
+    node.text=node[textField]
+    node.children=(Array.isArray(node[childrenField])&&node[childrenField].length>0)? propsTran.preprocess(node[childrenField], node[idField], [...node._path], idField, parentField, textField, childrenField,false):[];
+    return node;
+  }
+
