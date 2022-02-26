@@ -5,13 +5,12 @@
  * 2022-01-11 将 tree组件独立出来
  */
 import React, { useState, useCallback, useEffect ,useImperativeHandle} from "react";
-import {diff} from "../libs/func";
 import "../css/radio.css"
 function Radio(props, ref) {
     const [value, setValue] = useState(props.value);
     useEffect(() => {
         setValue(props.value)
-    }, [props.value])
+    }, [props])
     const onSelect = useCallback((v, t, c) => {
         setValue(v);
         props.onSelect && props.onSelect(v, t, c);
@@ -39,7 +38,7 @@ function Radio(props, ref) {
     if (data && data instanceof Array && data.length > 0) {
         let className = "wasabi-radio-btn " + (readOnly ? " readOnly" : "");
         return <div className={"wasabi-form-group " + (props.className || "")}>
-            <div className={'wasabi-form-group-body' + (props.readOnly || props.disabled ? " readOnly" : "")}><ul className="wasabi-checkul radio">
+            <div className={'wasabi-form-group-body' + (props.readOnly || props.disabled ? " readOnly" : "")}><ul className="wasabi-checkul">
                 {
                     data.map((child, index) => {
                         return (
@@ -56,6 +55,4 @@ function Radio(props, ref) {
     }
     return null;
 }
-export default React.memo(React.forwardRef(Radio), (pre, next) => {
-    return !diff(pre, next)
-})
+export default React.memo(React.forwardRef(Radio))

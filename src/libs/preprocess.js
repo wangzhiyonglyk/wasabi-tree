@@ -10,14 +10,14 @@ import {toTreeData} from "../libs/func"
  * @param {*} parentField 父节点字段
  * @param {*} textField 文本字段
  * @param {*} childrenField 子节点字段
- * @param {*} simpleData 是否简单数据
+ * @param {*} isSimpleData 是否简单数据
  * @returns 
  */
 
- export function preprocess (data = [], pId = "", path = [], idField = "id", parentField = "pId", textField = "text", childrenField = "children", simpleData) {
+ export function preprocess (data = [], pId = "", path = [], idField = "id", parentField = "pId", textField = "text", childrenField = "children", isSimpleData) {
     let result=[];
     if (Array.isArray(data)) {
-        data = simpleData ? toTreeData(data, idField, parentField, textField) : data;
+        data = isSimpleData ? toTreeData(data, idField, parentField, textField) : data;
          result= data.map((item, index) => {
              item.id=item[idField];
              item.pId=pId;
@@ -43,7 +43,7 @@ import {toTreeData} from "../libs/func"
     node.id=node[idField];
     node.pId=node[parentField];
     node.text=node[textField]
-    node.children=(Array.isArray(node[childrenField])&&node[childrenField].length>0)? propsTran.preprocess(node[childrenField], node[idField], [...node._path], idField, parentField, textField, childrenField,false):[];
+    node.children=(Array.isArray(node[childrenField])&&node[childrenField].length>0)?preprocess(node[childrenField], node[idField], [...(node._path??[])], idField, parentField, textField, childrenField,false):[];
     return node;
   }
 

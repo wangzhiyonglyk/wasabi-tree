@@ -6,7 +6,6 @@
  */
 import React, { useState, useCallback, useMemo, useEffect, useImperativeHandle } from "react";
 import processText from "../libs/processText";
-import {diff} from "../libs/func";
 import "../css/radio.css"
 const isChecked = (child, value = "") => {
     let checked = false;
@@ -23,7 +22,7 @@ function CheckBox(props, ref) {
     const text = useMemo(() => { return processText(value, props.data).join(",") }, [props.data, value])
     useEffect(() => {
         setValue((props.value ?? "") + "")
-    }, [props.value])
+    }, [props])
 
     //对外接口
     useImperativeHandle(ref, () => ({
@@ -80,7 +79,7 @@ function CheckBox(props, ref) {
     }, [props])
     if (data && data instanceof Array && data.length > 0) {
         return <div className={"wasabi-form-group " + (props.className || "")}>
-            <div className={'wasabi-form-group-body' + (props.readOnly || props.disabled ? " readOnly" : "")}><ul className="wasabi-checkul radio">{
+            <div className={'wasabi-form-group-body' + (props.readOnly || props.disabled ? " readOnly" : "")}><ul className="wasabi-checkul">{
                 data.map((child, index) => {
                     let checked = isChecked(child, value);
                     return <li key={index} onClick={onSelect.bind(this, (child.value??""), (child.text??""), child, value, text)}  >
@@ -92,6 +91,4 @@ function CheckBox(props, ref) {
     }
     return null;
 }
-export default React.memo(React.forwardRef(CheckBox), (pre, next) => {
-    return diff(pre, next)
-})
+export default React.memo(React.forwardRef(CheckBox))

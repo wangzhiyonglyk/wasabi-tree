@@ -72,7 +72,7 @@ classDiagram
     getData-->TreeContainer:url请求数据
     preprocess-->TreeContainer:预处理数据
     handlerVisibleData-->TreeContainer:得到可见区域数据
-    func-->preprocess:【simpleData】转树结构
+    func-->preprocess:【isSimpleData】转树结构
     func-->handlerVisibleData:扁平化数据
 
 ```
@@ -183,8 +183,8 @@ data是一个数组，节点数据字段的默认值如下，完整的属性请�
 | ```dataSource```| string|ajax的返回的数据源中哪个属性作为数据源,可以分层比如``` data.list ```)|data|
 |headers|array|请求时传的表头参数|null|
 | data| array|父组件传的固定数据|null|
-|```simpleData``` |bool|是否使用简单的数据格式，即没有children的一维数组，通过pId,id自动组装成树结构,目的是为了后端sql查询出来的数据，如果数量过大，会有性能问题，建议后端回传标准的树结构|false|
-|dotted| bool|是否有虚线|true|
+|```isSimpleData``` |bool|是否使用简单的数据格式，即没有children的一维数组，通过pId,id自动组装成树结构,目的是为了后端sql查询出来的数据，如果数量过大，会有性能问题，建议后端回传标准的树结构|false|
+|dottedAble| bool|是否有虚线|true|
 |selectAble| bool|是否允许勾选|false|
 |checkStyle| oneOf(["checkbox", "radio", func])|单选还是多选,可以通过函数返回自定义组件，```func(row){retrun node;}``` 注意： ```宽度20px,高度 30px```|checkbox
 |checkType| object|勾选对于父子节点的关联关系```[y]代表选中，[n]代表取消 [p]父节点 [s]代表子节点``` |```{ "y": "ps", "n": "ps" }```|
@@ -216,14 +216,19 @@ data是一个数组，节点数据字段的默认值如下，完整的属性请�
 #### 2.6 组件方法（ref)
 |  属性名| 类型  |说明|参数|返回值|
 |  ----  | ----  |----  |----  |---|
-|getChecked|func|获取勾选节点|null|data|
+|findNode|func|获取某个节点|id|node|
+|findParents|func|获取某个节点所有父节点包括自身|id|[nodes]|
+|getData|func|获取所有节点|null|data|
+|getChecked|func|获取勾选节点|null|checkedData|
 |setChecked|func|设置勾选节点|id,checked|null|
 |clearChecked|func|清除全部勾选节点|null|null|
 |checkedAll|func|勾选全部节点|null|data|
 |setClick|func|设置节点单击选中，并且可见|id|null|
 |remove|func|删除某个节点|id|null|
+|removeAll|func|删除所有节点|null|null|
 |append|func|追加某个节点|children,node|null|
 |update|func|更新某个节点|node|null|
+|updateAll|func|更新整个树|data|null|
 |filter|func|过滤节点|value|null|
 |adjust|func|重新调整容器|null|null|
 #### 2.7 节点Node属性
