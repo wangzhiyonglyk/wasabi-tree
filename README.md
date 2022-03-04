@@ -224,7 +224,7 @@ data是一个数组，节点数据字段的默认值如下，完整的属性请�
 |clearChecked|func|清除全部勾选节点|null|null|
 |checkedAll|func|勾选全部节点|null|data|
 |setClick|func|设置节点单击选中，并且可见|id|null|
-|remove|func|删除某个节点|id|null|
+|remove|func|删除节点,可以传数组，代表删除多个|id或者[id,id]|null|
 |removeAll|func|删除所有节点|null|null|
 |append|func|追加某个节点|children,node|null|
 |update|func|更新某个节点|node|null|

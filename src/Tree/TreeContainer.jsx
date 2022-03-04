@@ -262,7 +262,14 @@ const myReducer = function (state, action) {
                 preState = handlerVisibleData(state, state.sliceBeginIndex, state.sliceEndIndex, data);
                 break;
             case "remove":
-                data = removeNode(state.data, { id: payload });
+                newData = state.data
+                if (Array.isArray(payload)) {
+                  payload.forEach(item => {
+                    newData = removeNode(newData, { id: item })
+                  })
+                } else {
+                  newData = removeNode(newData, { id: payload })
+                }
                 preState = handlerVisibleData(state, state.sliceBeginIndex, state.sliceEndIndex, data);
                 break;
             case "removeAll":
@@ -315,7 +322,11 @@ function TreeContainer(props, ref) {
             }
         );
         let checked = (id ?? "").toString() === (checkValue ?? "").toString();
-        props.onChecked && props.onChecked(checked, id, text, row);
+        //方便父组件获取所有勾选节点
+        setTimeout(() => {
+            props.onChecked && props.onChecked(checked, id, text, row);
+        }, 100);
+
     }, [props]);
     const onRemove = useCallback((id, text, row) => {
         if (window.confirm("您确定删除【" + text + "]吗")) {
@@ -443,16 +454,16 @@ function TreeContainer(props, ref) {
      * @returns 
      */
         findNode(id) {
-            return findNodeById(state.data,id);
+            return findNodeById(state.data, id);
         },
         /**
          * 获取某个节点整个链路树
          * @param {*} id 
          */
-        findParents(id){
-            let node=findNodeById(state.data,id);
-            return node&&node._path?findLinkNodesByPath(state.data,node._path):[];
-           
+        findParents(id) {
+            let node = findNodeById(state.data, id);
+            return node && node._path ? findLinkNodesByPath(state.data, node._path) : [];
+
         },
         /**
          * 获取所有节点
@@ -518,11 +529,11 @@ function TreeContainer(props, ref) {
             dispatch({ type: "setOpen", payload: { row: { id }, open } });
         },
         /**
-         * 移除某个节点
-         * @param {*} row 
+         * 移除节点
+         * @param {*} id 
          */
-        remove(node) {
-            dispatch({ type: "remove", payload: node });
+        remove(id) {
+            dispatch({ type: "remove", payload: id });
         },
         /**
         * 清除所有
