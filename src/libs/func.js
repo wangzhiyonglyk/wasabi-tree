@@ -288,7 +288,7 @@ export function toTreeData(data, idField = "id", parentField = "pId", textField 
         for (let i = 0; i < data.length; i++) {
                 data[i]._isLast = i === data.length - 1 ? true : false//目的为了画向下的虚线最一个不需要
                 result.push(data[i])
-            if (data[i].children && data[i].children.length > 0 && data[i].open === true) {
+            if (data[i].children && data[i].children.length > 0 && data[i].isOpened === true) {
               result= result.concat(treeDataToFlatData(data[i].children));
             }
         }

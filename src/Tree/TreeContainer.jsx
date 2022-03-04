@@ -9,7 +9,7 @@ import React, { useState, useReducer, useCallback, useEffect, useImperativeHandl
 import PropTypes from "prop-types";
 import { treeDataToFlatData, getSource, uuid, clone } from "../libs/func";
 import { preprocess, preprocessNode } from "../libs/preprocess.js";
-import { setChecked, setRadioChecked, findNodeById, findLinkNodesByPath, clearChecked, checkedAll, removeNode, renameNode, moveAterNode, moveBeforeNode, moveInNode, setOpen, appendChildren, getChecked, filter, updateNode } from "./treeFunc";
+import { setChecked, setRadioChecked, findNodeById, findLinkNodesByPath, clearChecked, checkedAll, removeNode, renameNode, moveAterNode, moveBeforeNode, moveInNode, setOpen, appendChildren, getChecked, filter, updateNode,setLinkNodeOpen } from "./treeFunc";
 import api from "wasabi-api"
 import "../css/tree.css"
 import config from "./config";
@@ -166,6 +166,20 @@ const myReducer = function (state, action) {
                     clickId: payload
                 };
                 break;
+            /**
+        * 设置某个节点选中
+        */
+            case "setClick":
+                data = setLinkNodeOpen(state.data, { id: payload })
+                let flatData = treeDataToFlatData(data);
+                preState = {
+                    ...state,
+                    data: data,
+                    flatData: flatData,
+                    clickId: payload,
+                    scrollIndex: flatData.findIndex(item => {  return item.id === payload })
+                };
+                break;
             //勾选
             case "onChecked":
                 let checked = (payload.id + "") === (payload.checkValue + "");
@@ -264,11 +278,11 @@ const myReducer = function (state, action) {
             case "remove":
                 newData = state.data
                 if (Array.isArray(payload)) {
-                  payload.forEach(item => {
-                    newData = removeNode(newData, { id: item })
-                  })
+                    payload.forEach(item => {
+                        newData = removeNode(newData, { id: item })
+                    })
                 } else {
-                  newData = removeNode(newData, { id: payload })
+                    newData = removeNode(newData, { id: payload })
                 }
                 preState = handlerVisibleData(state, state.sliceBeginIndex, state.sliceEndIndex, data);
                 break;
@@ -500,25 +514,13 @@ function TreeContainer(props, ref) {
             dispatch({ type: "checkedAll" });
         },
         /**
-         * 单击节点
-         */
+          * 单击节点
+          */
         setClick(id) {
             if (id && id !== state.clickId) {
-                dispatch({ type: "onClick", payload: id });
+                dispatch({ type: "setClick", payload: id });
                 treegrid?.current?.setFocus(id);  //如果是树表格或者交叉表
-                //设置选中的节点可见
-                const findIndex = state.flatData.findIndex((item, index) => {
-                    return item.id === id
-                })
-                const visibleData = getVisibleCount(treecontainerid)
-                if (findIndex < visibleData.startIndex || findIndex > visibleData.endIndex) {
-                    // 节点不可见
-                    document.getElementById(treecontainerid).scrollTop = (findIndex - 1) * rowDefaultHeight
-
-                    onScroll()
-                }
             }
-
         },
         /**
          * 展开或折叠节点
@@ -617,6 +619,13 @@ function TreeContainer(props, ref) {
         }
     }, [props.data, props.url])
 
+    //有滚动事件
+    useEffect(() => {
+        if (state.scrollIndex !== null && state.scrollIndex >= 0) {
+            document.getElementById(treecontainerid).scrollTop = (state.scrollIndex - 1) * rowDefaultHeight;
+            onScroll();
+        }
+    }, [state.scrollIndex])
 
 
     //需要下传的事件
