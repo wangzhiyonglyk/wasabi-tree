@@ -161,7 +161,7 @@ data是一个数组，节点数据字段的默认值如下，完整的属性请�
        iconCls = "";//默认图标
        iconClose = "";//[父节点]关闭图标
        iconOpen = "";//[父节点]打开图标
-       open = false;//是否处于打开状态
+       isOpened = false;//是否处于打开状态
        checked = false;//是否被勾选
        selectAble = false;//是否允许勾选
        draggAble = false;//是否允许拖动，
@@ -193,6 +193,7 @@ data是一个数组，节点数据字段的默认值如下，完整的属性请�
 | removeAble| bool|是否允许移除|false|
 | draggAble| bool|是否允许拖动|false|
 | dropAble| bool|是否允许停靠|false|
+|dropType| array|停靠模式|null,["before","in","after"|
 |asyncAble| bool|节点是否可以异步加载数据|false|
 |textFormatter|func(row)|节点文本格式化函数 例子：``` (row)=>{return <div className="red">{row.text}</div>```|null|
 #### 2.5 事件
@@ -244,11 +245,12 @@ data是一个数组，节点数据字段的默认值如下，完整的属性请�
 |iconOpen |string  |[父节点]展开图标|icon-folder|
 |arrowUnFoldIcon|node|节点展开的箭头图标组件|icon-arrow-down|
 |arrowFoldIcon|node|节点折叠的箭头图标组件|icon-arrow-right|
-|open|bool|是否处于打开状态|false|
+|isOpened|bool|是否处于打开状态|false|
 |checked |bool|是否被勾选|false|
 |selectAble|bool|是否允许勾选|false|
 |draggAble|bool|是否允许拖动|false|
 |dropAble|bool|是否允许停靠|false|
+|dropType| array|停靠模式|null,["before","in","after"|
 |href|string|节点的链接|null|
 |hide|bool|是否隐藏|false|
 |children|array|子节点|null

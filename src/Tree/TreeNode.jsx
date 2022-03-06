@@ -32,7 +32,7 @@ function NodeView(props) {
     let title = row.title || row.text;//提示信息 
     let iconCls = row.iconCls;//默认图标图标
     if (row.isParent) {//如果是父节点
-        if (row.open) {//打开状态，
+        if (row.isOpened) {//打开状态，
             iconCls = row.iconOpen ? row.iconOpen : row.iconCls;//没有则用默认图标
         }
         else {//关闭状态
@@ -44,7 +44,7 @@ function NodeView(props) {
         iconCls = "icon-loading tree-loading";
 
     }
-    let childrenLength = row.open === false ? 0 : row?.children?.length || 0;//子节点个数
+    let childrenLength = row.isOpened === false ? 0 : row?.children?.length || 0;//子节点个数
     let textwidthReduce = 20;//文本字段减少的宽度
     //空白位，表示节点层级
     let blankControl = [];
@@ -57,7 +57,7 @@ function NodeView(props) {
     //节点前面箭头图标
     let arrowIcon;
     if (row.isParent) {//是父节点才有箭头
-        if (row.open) {
+        if (row.isOpened) {
             if (props.arrowUnFoldIcon) {
                 arrowIcon = <div className={"wasabi-tree-li-icon"} style={{ display: "inline-block" }} onClick={row.isParent ? onExpand : null}>{props.arrowUnFoldIcon}</div>
 
@@ -199,8 +199,8 @@ function TreeNode(props) {
      */
     const onExpand = useCallback(() => {
         let row = TreeNodeFormat(props)
-        let open = !!!row.open;
-        props.onExpand && props.onExpand(open, row.id, row.text, row)
+        let isOpened = !!!row.isOpened;
+        props.onExpand && props.onExpand(isOpened, row.id, row.text, row)
     }, [props])
 
     /**
@@ -311,7 +311,7 @@ function TreeNode(props) {
         if (row.dropAble) {
             const domClientY = document.getElementById(nodeid).getBoundingClientRect().top;
             const mouseClientY = event.clientY;
-            if (mouseClientY - domClientY < 10) {
+            if ((!row.dropType||row.dropType&&row.dropType.inddexOf("before")>-1)&&mouseClientY - domClientY < 10) {
                 //前插入
                 document.getElementById(nodeid).style.borderTop = "1px solid var(--border-color)";
                 document.getElementById(nodeid).style.borderBottom = "none";
@@ -319,14 +319,14 @@ function TreeNode(props) {
                 window.localStorage.setItem("wasabi-drag-type", "before");
             }
 
-            else if (mouseClientY - domClientY < 30) {
+            else if ((!row.dropType||row.dropType&&row.dropType.inddexOf("in")>-1)&&mouseClientY - domClientY < 30) {
                 //包含
                 document.getElementById(nodeid).style.borderTop = "none";
                 document.getElementById(nodeid).style.borderBottom = "none";
                 document.getElementById(nodeid).style.backgroundColor = "var(--background-color)";
                 window.localStorage.setItem("wasabi-drag-type", "in");
             }
-            else {
+            else if((!row.dropType||row.dropType&&row.dropType.inddexOf("after")>-1)) {
                 //后插入
                 document.getElementById(nodeid).style.borderTop = "none";
                 document.getElementById(nodeid).style.borderBottom = "1px solid var(--border-color)";
@@ -407,11 +407,12 @@ TreeNode.propTypes = {
     iconCls: PropTypes.string,//默认图标
     iconClose: PropTypes.string,//[父节点]关闭图标
     iconOpen: PropTypes.string,//[父节点]打开图标
-    open: PropTypes.bool,//是否处于打开状态
+    isOpened: PropTypes.bool,//是否处于打开状态
     checked: PropTypes.bool,//是否被勾选
     selectAble: PropTypes.bool,//是否允许勾选
     draggAble: PropTypes.bool,//是否允许拖动，
     dropAble: PropTypes.bool,//是否允许停靠
+    dropType:PropTypes.array,//停靠的模式["before","in","after"]
     href: PropTypes.string,//节点的链接
     hide: PropTypes.bool,//是否隐藏
     children: PropTypes.array,//子节点
@@ -442,7 +443,7 @@ TreeNode.defaultProps = {
     iconOpen: "icon-folder-open",
     checked: false,
     selectAble: false,
-    open: false,
+    isOpened: false,
     half: false,
     draggAble: false,
     dropAble: false,

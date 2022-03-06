@@ -9,7 +9,7 @@ import React, { useState, useReducer, useCallback, useEffect, useImperativeHandl
 import PropTypes from "prop-types";
 import { treeDataToFlatData, getSource, uuid, clone } from "../libs/func";
 import { preprocess, preprocessNode } from "../libs/preprocess.js";
-import { setChecked, setRadioChecked, findNodeById, findLinkNodesByPath, clearChecked, checkedAll, removeNode, renameNode, moveAterNode, moveBeforeNode, moveInNode, setOpen, appendChildren, getChecked, filter, updateNode,setLinkNodeOpen } from "./treeFunc";
+import { setChecked, setRadioChecked, findNodeById, findLinkNodesByPath, clearChecked, checkedAll, removeNode, renameNode, moveAterNode, moveBeforeNode, moveInNode, setOpen, appendChildren, getChecked, filter, updateNode, setLinkNodeOpen } from "./treeFunc";
 import api from "wasabi-api"
 import "../css/tree.css"
 import config from "./config";
@@ -177,7 +177,7 @@ const myReducer = function (state, action) {
                     data: data,
                     flatData: flatData,
                     clickId: payload,
-                    scrollIndex: flatData.findIndex(item => {  return item.id === payload })
+                    scrollIndex: flatData.findIndex(item => { return item.id === payload })
                 };
                 break;
             //勾选
@@ -272,7 +272,7 @@ const myReducer = function (state, action) {
                 break;
             //设置折叠或展开
             case "setOpen":
-                data = setOpen(state.data, payload.row, payload.open);
+                data = setOpen(state.data, payload.row, payload.isOpened);
                 preState = handlerVisibleData(state, state.sliceBeginIndex, state.sliceEndIndex, data);
                 break;
             case "remove":
@@ -389,9 +389,9 @@ function TreeContainer(props, ref) {
     }, [props]);
 
     //展开节点
-    const onExpand = useCallback((open, id, text, row) => {
+    const onExpand = useCallback((isOpened, id, text, row) => {
         //先设置折叠或者展开
-        dispatch({ type: "setOpen", payload: { row, open } });//设置折叠与展开
+        dispatch({ type: "setOpen", payload: { row, isOpened } });//设置折叠与展开
         if (props.asyncAble && (!row.children || row.children.length === 0)) {//没有数据
             let asyncChildrenData = [];
             if (props.onAsync && typeof props.onAsync === "function") {//自行处理
@@ -422,7 +422,7 @@ function TreeContainer(props, ref) {
 
         }
 
-        props.onExpand && props.onExpand(open, id, text, row);
+        props.onExpand && props.onExpand(isOpened, id, text, row);
     }, [props, loadSuccess, loadError, state.sliceBeginIndex, state.sliceEndIndex]);//
     /**
   * 渲染当前可见数据
@@ -525,10 +525,10 @@ function TreeContainer(props, ref) {
         /**
          * 展开或折叠节点
          * @param {*} id 
-         * @param {*} open 
+         * @param {*} isOpened 
          */
-        setOpen(id, open) {
-            dispatch({ type: "setOpen", payload: { row: { id }, open } });
+        setOpen(id, isOpened) {
+            dispatch({ type: "setOpen", payload: { row: { id }, isOpened } });
         },
         /**
          * 移除节点
@@ -683,6 +683,7 @@ TreeContainer.propTypes = {
     removeAble: PropTypes.bool,//是否允许移除
     draggAble: PropTypes.bool,//是否允许拖动，
     dropAble: PropTypes.bool,//是否允许停靠
+    dropType:PropTypes.array,//停靠的模式["before","in","after"]
     asyncAble: PropTypes.bool,//是否可以异步加载数据
 
     //after事件
