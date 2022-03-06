@@ -315,7 +315,7 @@ function TreeNode(props) {
                 //前插入
                 document.getElementById(nodeid).style.borderTop = "1px solid var(--border-color)";
                 document.getElementById(nodeid).style.borderBottom = "none";
-                document.getElementById(nodeid).style.backgroundColor = null;
+                document.getElementById(nodeid).style.backgroundColor = "var(--background-color)";
                 window.localStorage.setItem("wasabi-drag-type", "before");
             }
 
@@ -330,7 +330,7 @@ function TreeNode(props) {
                 //后插入
                 document.getElementById(nodeid).style.borderTop = "none";
                 document.getElementById(nodeid).style.borderBottom = "1px solid var(--border-color)";
-                document.getElementById(nodeid).style.backgroundColor = null;
+                document.getElementById(nodeid).style.backgroundColor = "var(--background-color)";
                 window.localStorage.setItem("wasabi-drag-type", "after");
             }
         }
