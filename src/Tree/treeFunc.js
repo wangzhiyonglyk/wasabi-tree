@@ -286,8 +286,13 @@ export function checkedAll(data) {
 export function setOpen(data, node, isOpened) {
     try {
         node = findNodeByPath(data, (node._path ?? findNodeById(data, node.id)?._path));
-        node.isOpened = isOpened;
-        return data;
+        if(isOpened){
+           return  setLinkNodeOpen(data,node);
+        }
+        else{
+            node.isOpened = isOpened;
+            return data;
+        }
     }
     catch (e) {
 

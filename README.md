@@ -227,8 +227,8 @@ data是一个数组，节点数据字段的默认值如下，完整的属性请�
 |setClick|func|设置节点单击选中，并且可见|id|null|
 |remove|func|删除节点,可以传数组，代表删除多个|id或者[id,id]|null|
 |removeAll|func|删除所有节点|null|null|
-|append|func|追加某个节点|children,node|null|
-|update|func|更新某个节点|node|null|
+|append|func|追加某个节点|children,node(指定某个节点，不指定则是追加到第一层)|null|
+|update|func|更新某个/多个节点节点|node,[node,node]|null|
 |updateAll|func|更新整个树|data|null|
 |filter|func|过滤节点|value|null|
 |adjust|func|重新调整容器|null|null|

@@ -26,9 +26,8 @@ let rowDefaultHeight = config.rowDefaultHeight;
  * @returns 
  */
 const getVisibleCount = function (containerid) {
-    if (!containerHeight) {
-        containerHeight = document.getElementById(containerid).clientHeight || window.innerHeight;
-    }
+    //每次计算一次
+    containerHeight = document.getElementById(containerid).clientHeight || window.innerHeight;
     let visibleDataCount = Math.ceil(containerHeight / rowDefaultHeight);
     let scrollTop = document.getElementById(containerid).scrollTop || 0;
     let startIndex = Math.floor(scrollTop / rowDefaultHeight) || 0;
@@ -177,7 +176,7 @@ const myReducer = function (state, action) {
                     data: data,
                     flatData: flatData,
                     clickId: payload,
-                    scrollIndex: flatData.findIndex(item => { return item.id === payload })
+                    scrollIndex: { index: flatData.findIndex(item => { return item.id === payload }) }//设置为对象，方便刷新
                 };
                 break;
             //勾选
@@ -272,8 +271,16 @@ const myReducer = function (state, action) {
                 break;
             //设置折叠或展开
             case "setOpen":
-                data = setOpen(state.data, payload.row, payload.isOpened);
-                preState = handlerVisibleData(state, state.sliceBeginIndex, state.sliceEndIndex, data);
+                    //如果有传节点，则直接用节点查询，快
+                data = setOpen(state.data, payload.node?payload.node:{id:payload.id}, payload.isOpened);
+                let flatData = treeDataToFlatData(data);
+                preState = {
+                    ...state,
+                    data: data,
+                    flatData: flatData,
+                    clickId: payload.id,
+                    scrollIndex: { index: flatData.findIndex(item => { return item.id === payload.id }) }//设置为对象，方便刷新
+                };
                 break;
             case "remove":
                 newData = state.data
@@ -298,7 +305,16 @@ const myReducer = function (state, action) {
                 break;
             //更新
             case "update":
-                data = updateNode(state.data, payload);
+                data = state.data;
+                if (Array.isArray(payload) && payload.length > 0) {
+                    payload.forEach(item => {
+                        data = updateNode(data, item)
+                    })
+                }
+                else {
+                    data = updateNode(data, payload);
+                }
+
                 preState = handlerVisibleData(state, state.sliceBeginIndex, state.sliceEndIndex, data);
                 break;
             default:
@@ -389,18 +405,18 @@ function TreeContainer(props, ref) {
     }, [props]);
 
     //展开节点
-    const onExpand = useCallback((isOpened, id, text, row) => {
+    const onExpand = useCallback((isOpened, id, text, node) => {
         //先设置折叠或者展开
-        dispatch({ type: "setOpen", payload: { row, isOpened } });//设置折叠与展开
-        if (props.asyncAble && (!row.children || row.children.length === 0)) {//没有数据
+        dispatch({ type: "setOpen", payload: { node:node, id, isOpened } });//设置折叠与展开
+        if (props.asyncAble && (!node.children || node.children.length === 0)) {//没有数据
             let asyncChildrenData = [];
             if (props.onAsync && typeof props.onAsync === "function") {//自行处理
                 //得到子节点
-                asyncChildrenData = props.onAsync(id, text, row);//得到数据
+                asyncChildrenData = props.onAsync(id, text, node);//得到数据
                 if (Array.isArray(asyncChildrenData)) {
                     //格式化数据
                     asyncChildrenData = handerLoadData(asyncChildrenData, props);
-                    dispatch({ type: "append", payload: { children: asyncChildrenData, row: row } })
+                    dispatch({ type: "append", payload: { children: asyncChildrenData, row: node } })
 
                 }
             }
@@ -412,7 +428,7 @@ function TreeContainer(props, ref) {
                     }
                 });//
                 //先保存节点数据
-                window.sessionStorage.setItem("async-tree-node", JSON.stringify(row));
+                window.sessionStorage.setItem("async-tree-node", JSON.stringify(node));
                 //请求数据
                 let params = clone(props.params) || {};
                 params[props.idField || "id"] = id;
@@ -422,7 +438,7 @@ function TreeContainer(props, ref) {
 
         }
 
-        props.onExpand && props.onExpand(isOpened, id, text, row);
+        props.onExpand && props.onExpand(isOpened, id, text, node);
     }, [props, loadSuccess, loadError, state.sliceBeginIndex, state.sliceEndIndex]);//
     /**
   * 渲染当前可见数据
@@ -517,10 +533,10 @@ function TreeContainer(props, ref) {
           * 单击节点
           */
         setClick(id) {
-            if (id && id !== state.clickId) {
-                dispatch({ type: "setClick", payload: id });
-                treegrid?.current?.setFocus(id);  //如果是树表格或者交叉表
-            }
+
+            dispatch({ type: "setClick", payload: id });
+            treegrid?.current?.setFocus(id);  //如果是树表格或者交叉表
+
         },
         /**
          * 展开或折叠节点
@@ -528,10 +544,10 @@ function TreeContainer(props, ref) {
          * @param {*} isOpened 
          */
         setOpen(id, isOpened) {
-            dispatch({ type: "setOpen", payload: { row: { id }, isOpened } });
+            dispatch({ type: "setOpen", payload: { id, isOpened } });
         },
         /**
-         * 移除节点
+         * 移除某个/或多个节点
          * @param {*} id 
          */
         remove(id) {
@@ -569,7 +585,13 @@ function TreeContainer(props, ref) {
         */
         update(node) {
             if (node) {
-                node = preprocessNode(node, props.idField, props.parentField, props.textField, props.childrenField);
+                if (Array.isArray(node) && node.length > 0) {
+                    for (let i = 0; i < node.length; i++) {
+                        node[i] = preprocessNode(node[i], props.idField, props.parentField, props.textField, props.childrenField);
+                    }
+                } else {
+                    node = preprocessNode(node, props.idField, props.parentField, props.textField, props.childrenField);
+                }
                 dispatch({ type: "update", payload: node })
             }
         },
@@ -621,8 +643,8 @@ function TreeContainer(props, ref) {
 
     //有滚动事件
     useEffect(() => {
-        if (state.scrollIndex !== null && state.scrollIndex >= 0) {
-            document.getElementById(treecontainerid).scrollTop = (state.scrollIndex - 1) * rowDefaultHeight;
+        if (state.scrollIndex && state.scrollIndex.index >= 0) {
+            document.getElementById(treecontainerid).scrollTop = (state.scrollIndex.index - 1) * rowDefaultHeight;
             onScroll();
         }
     }, [state.scrollIndex])
@@ -683,7 +705,7 @@ TreeContainer.propTypes = {
     removeAble: PropTypes.bool,//是否允许移除
     draggAble: PropTypes.bool,//是否允许拖动，
     dropAble: PropTypes.bool,//是否允许停靠
-    dropType:PropTypes.array,//停靠的模式["before","in","after"]
+    dropType: PropTypes.array,//停靠的模式["before","in","after"]
     asyncAble: PropTypes.bool,//是否可以异步加载数据
 
     //after事件
