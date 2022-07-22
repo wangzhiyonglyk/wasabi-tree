@@ -18,21 +18,33 @@
 2. 要渲染的数据是```visibleData```：上部预留区域+可见区域-下部预留区域
 3. 扁平化后切割数据，得到渲染数据:```visibleData```
 4. 监听容器的滚动事件，得到起始下标，重新计算要渲染的数据,并且进行了节流
+
+##### 2.3.2 除可见数据等少数状态外，整个树结构的数据不参与State
+
+1. 树的全部全部data,扁平化数据flatData,筛选后的数据等都不参与State
+2. 设置异步更新，将多次数据操作合并成一次更新`(父组件可能同时调用几个方法)`
+
 #####  2.3.2 预处理数据，标准化节点数据结构：```id,pId,text,children```
 通过字段属性名，标准化节点这四个字段值，方便对树节点的渲染与操作
-##### 2.3.3 预处理数据，增加节点路径```_path```
+##### 2.3.3 预处理数据，增加节点路径属性：`_path` 并且根据id作为key保存在map数据中`hashData`
 1. 对传递的数据先进行预处理，设置节点_path属性，保存节点在树结构的路径
 2. 能够通过_path快速找到节点，及祖先节点，快速操作树节点的勾选，增，删，修改，移动
 3. 通过_path字段来确实节点前面空白占位宽度大小，扁平化后依然能显示层级关系
+4. 通过`hashData`中的_path，方便调用Tree组件父级通过id操作树节点的勾选，增，删，修改，移动
 ##### 2.3.4  预处理数据，增加```_isLast```
 通过增加这个字段代表是否当前层级的最后一个节点，用来方便画虚线
 ##### 2.3.5 直接操作原data，不使用扩展运算符等浅复制操作
 浅复制是耗费性能的，在预处理与扁平化等算法中不进行浅复制，否则当数量过大，耗时极速增加
-##### 2.3.6 提供append，remove方法用于追加与删除节点
-树组件后期可以通过append，remove来追加，删除节点，避免父组件更新data，从而导致整个组件重新渲染
-##### 2.3.7 缓存所有方法与组件，避免重复渲染，最大限度的优化组件
+##### 2.3.6 提供getisChecked,append，remove,update,moveIn,等多种方法方便父组件操作节点`避免重新渲染`
+1. 父组件可以通过,findNode,findParents,getisChecked,getData等多种方法来获取即时数据状态，
+2. 父组件可以通过 selectNode, append，remove，update,moveIn等来选中,追加，删除，更新，移动等节点等多种操作
+3. `避免父组件更新data，从而导致整个组件重新渲染`
+##### 2.3.7  缓存所有方法与组件，避免重复渲染，最大限度的优化组件
 利用useCallBack,useReduce,memo等方式来减少重定义与渲染次数
+
 #### 2.2 十万数据量的渲染情况
+渲染情况不完全准确：
+
  2.2.1 预处理数据平均时长：```约108ms```
  2.2.2 扁平化数据平均时长：```约25ms```
  2.2.3 首屏时间:```约0.8s```<sup style="color:#840909">需要继续优化</sup>
@@ -71,9 +83,9 @@ classDiagram
     getVisibleCount-->TreeContainer:容器高度及可见节点数
     getData-->TreeContainer:url请求数据
     preprocess-->TreeContainer:预处理数据
-    handlerVisibleData-->TreeContainer:得到可见区域数据
+    showVisibleData-->TreeContainer:得到可见区域数据
     func-->preprocess:【isSimpleData】转树结构
-    func-->handlerVisibleData:扁平化数据
+    func-->showVisibleData:扁平化数据
 
 ```
 #### 3.2 树的数据流图示
@@ -98,12 +110,12 @@ TreeNode类-->NodeView类:设置节点的事件，透传props，渲染视图
 ##### 3.3.1 getVisibleCount-获取可见区域节点数量
 3. 根据容器高度得到可渲染的数据个数visibleCount
 2. 得到可见区域的起始结束下标(startIndex,endIndex),```不是了可见数据visibleData的起始下标，因为有上下预留区```
-##### 3.3.2 handlerVisibleData-得到可见数据等
+##### 3.3.2 showVisibleData-得到可见数据等
 3. 将data扁平化得到flatData
 2.  得到```visibleData[可见数据]```,```filterData【过滤的数据】```,```flatData【扁平化数据】```,```data[原始可操作数据]```
 3. 得到 ```sliceBeginIndex[切割的起始下标]```,```sliceEndIndex[切割的结束下标]```
 4. 在滚动过程不再扁平化，直接使用上次的flatData
-5. 除非有新的filterValue,或者Data,再重新扁平化
+5. 除非有新的filterValue,或者更新Data的结构,再重新扁平化
 ##### 3.3.3 getData-请求数据
 如果传递的url，进行fetch请求，得到传递的数据
 ##### 3.3.4 func-公共函数库
@@ -124,7 +136,7 @@ TreeNode类-->NodeView类:设置节点的事件，透传props，渲染视图
 ##### 3.3.7 myReducer-树的reduce函数
 处理树组件的state
 ##### 3.3.8 TreeContainer-树的容器
-3. 调用```【getVisibleCount】``` ```【handlerVisibleData】```进行第一次渲染
+3. 调用```【getVisibleCount】``` ```【showVisibleData】```进行第一次渲染
 2. 处理树所有的事件，调用```[myReducer]```得到新的state
 3. 提供ref调用的方法，方便获树相关的数据
 4. 将state传递给```[TreeView]```
@@ -150,40 +162,21 @@ function Demo(props){
     return <Tree data={props.data}></Tree>
 }
 ```
-#### 2.3 data的数组中的item的格式
-data是一个数组，节点数据字段的默认值如下，完整的属性请下面的节点属性一章
-``` javascript
-        isParent = null;//是否是父节点
-       id = "";//值
-       pId="";//父节点
-       text = "";//标题
-       title = "";//提示信息
-       iconCls = "";//默认图标
-       iconClose = "";//[父节点]关闭图标
-       iconOpen = "";//[父节点]打开图标
-       isOpened = false;//是否处于打开状态
-       checked = false;//是否被勾选
-       selectAble = false;//是否允许勾选
-       draggAble = false;//是否允许拖动，
-       dropAble = false;//是否允许停靠
-       href = null;//节点的链接
-       hide = false;//是否隐藏
-       children = null;//子节点
-```
-#### 2.4 树属性
+
+#### 2.3 树属性
 |  属性名   | 类型  |说明|默认值|
 |  ----  | ----  |----  |----  |
 |name| string|树名称|null|
-|idField| string|数据字段属性名|id|
-|parentField| string|父节点属性名|pId|
-|textField| string|数据字段属性名|text|
-|childrenField| string|子节点属性名|text|
-| url| string|```后台查询地址，第一次自动查询，如果设置asyncAble为true，而oAsync为空，则展开节点时自动根据这个地址查询```|null|
+|idField| string|指定哪个字段是节点的id|id|
+|parentField| string|指定哪个字段是节点的pId|pId|
+|textField| string|指定哪个字段是节点的text|text|
+|childrenField| string|指定哪个字段是节点的children|children|
+|url| string|`1.后台查询地址，第一次自动查询 2.节点展开时如果asyncAble为true，而oAsync函数为空，则自动根据这个url地址查询`|null|
 | params| object|向后台传输的额外参数|null|
-| ```dataSource```| string|ajax的返回的数据源中哪个属性作为数据源,可以分层比如``` data.list ```)|data|
+| `dataSource`| string|有url参数时的返回的数据源中哪个属性作为数据源,可以分层比如`data.list `)|data|
 |headers|array|请求时传的表头参数|null|
 | data| array|父组件传的固定数据|null|
-|```isSimpleData``` |bool|是否使用简单的数据格式，即没有children的一维数组，通过pId,id自动组装成树结构,目的是为了后端sql查询出来的数据，如果数量过大，会有性能问题，建议后端回传标准的树结构|false|
+|```isSimpleData``` |bool|`是否使用简单的数据格式：只针对整个树的数据源,子节点异步查询不起作用。目的是在前端将扁平化数据转成树结构` |false|
 |dottedAble| bool|是否有虚线|true|
 |selectAble| bool|是否允许勾选|false|
 |checkStyle| oneOf(["checkbox", "radio", func])|单选还是多选,可以通过函数返回自定义组件，```func(row){retrun node;}``` 注意： ```宽度20px,高度 30px```|checkbox
@@ -194,18 +187,18 @@ data是一个数组，节点数据字段的默认值如下，完整的属性请�
 | draggAble| bool|是否允许拖动|false|
 | dropAble| bool|是否允许停靠|false|
 |dropType| array|停靠模式|null,["before","in","after"|
-|asyncAble| bool|节点是否可以异步加载数据|false|
-|textFormatter|func(row)|节点文本格式化函数 例子：``` (row)=>{return <div className="red">{row.text}</div>```|null|
-#### 2.5 事件
+|asyncAble| bool|展开节点是否可以异步加载数据|false|
+|textFormatter|func(row)|自定义节点文本样式函数 例子：``` (row)=>{return <div className="red">{row.text}</div>```|null|
+#### 2.4 事件
 |  属性名   | 类型  |说明|参数|返回值|
 |  ----  | ----  |----  |----  |---|
 | onClick| func|单击的事件|id,text,row|
 | onDoubleClick| func|双击事件|id,text,row|
-| onCheck| func|勾选/取消勾选事件|checked, id, text, row|
+| onCheck| func|勾选/取消勾选事件|isChecked, id, text, row|
 | onExpand| func|展开/折叠事件|open, id, text, row|
 | onRename| func|重命名事件|id, text, row, newText|
 | onRemove| func|删除事件|id, text, row|
-| onRightClick| func|右键菜单|id, text, row|
+| onRightClick| func|右键菜单|id, text, row|`暂未开发`
 | onDrag| func|拖动事件|id, text, row|
 | onDrop| func|停靠事件|dragNode(移动节点), dropNode(停靠节点), dragType(停靠方式)|
 | onAsync| func|节点异步查询，为null，则会通过url来处理|id, text, row|data,即异步加载后节点数据|
@@ -213,32 +206,32 @@ data是一个数组，节点数据字段的默认值如下，完整的属性请�
 | beforeDrop| func|停靠前事件|dragNode(移动节点), dropNode(停靠节点), dragType(停靠方式|```true(同意),false(不同意)```
 | beforeRemove| func|删除前事件|id, text, row|```true(同意),false(不同意)```
 | beforeRename| func|重命名前事件|id, text, row|```true(同意),false(不同意)```
-| beforeRightClick| func|鼠标右键前事件|id, text, row|```true(同意),false(不同意)```
-#### 2.6 组件方法（ref)
+| beforeRightClick| func|鼠标右键前事件|id, text, row|```true(同意),false(不同意)  暂未开发```
+#### 2.5 组件方法（ref)
 |  属性名| 类型  |说明|参数|返回值|
 |  ----  | ----  |----  |----  |---|
 |findNode|func|获取某个节点|id|node|
 |findParents|func|获取某个节点所有父节点包括自身|id|[nodes]|
 |getData|func|获取所有节点|null|data|
-|getChecked|func|获取勾选节点|null|checkedData|
-|setChecked|func|设置勾选节点|id,checked|null|
+|getChecked|func|获取勾选节点|null|isCheckedData|
+|setChecked|func|设置勾选节点|id,isChecked|null|
 |clearChecked|func|清除全部勾选节点|null|null|
 |checkedAll|func|勾选全部节点|null|data|
-|setClick|func|设置节点单击选中，并且可见|id|null|
+|selectNode|func|设置节点单击选中，并且滚动到此处，祖先节点全部展开|id|null|
 |remove|func|删除节点,可以传数组，代表删除多个|id或者[id,id]|null|
 |removeAll|func|删除所有节点|null|null|
-|append|func|追加某个节点|children,node(指定某个节点，不指定则是追加到第一层)|null|
-|update|func|更新某个/多个节点节点|node,[node,node]|null|
+|append|func|追加某个节点,id为空时即为更新全部|children,id|null|
+|update|func|更新某个节点,或者某组[node,node]|nodes|null|
 |updateAll|func|更新整个树|data|null|
 |filter|func|过滤节点|value|null|
-|adjust|func|重新调整容器|null|null|
-#### 2.7 节点Node属性
+|adjust|func|重新调整容器，适应容器高度发生变化|null|null|
+#### 2.6 节点Node属性
 |  属性名   | 类型  |说明|默认值|
 |  ----  | ----  |----  |---- |
  |isParent|bool|是否是父节点|null|
-|id |string|key值|""|
-|pId|string|父节点key值|""|
-|text|string|节点文本|""|
+|id |string|key值,如果没有会根据树组件设定的idField来转换|""|
+|pId|string|父节点key值 如果没有会根据树组件设定的parentField来转换|""|
+|text|string|节点文本,如果没有会根据树组件设定的textField来转换|""|
 |title|string|提示信息|""|
 |iconCls|string |默认图标|icon-text|
 |iconClose|string  |[父节点]关闭图标|icon-folder|
@@ -246,12 +239,12 @@ data是一个数组，节点数据字段的默认值如下，完整的属性请�
 |arrowUnFoldIcon|node|节点展开的箭头图标组件|icon-arrow-down|
 |arrowFoldIcon|node|节点折叠的箭头图标组件|icon-arrow-right|
 |isOpened|bool|是否处于打开状态|false|
-|checked |bool|是否被勾选|false|
+|isChecked |bool|是否被勾选|false|
 |selectAble|bool|是否允许勾选|false|
 |draggAble|bool|是否允许拖动|false|
 |dropAble|bool|是否允许停靠|false|
 |dropType| array|停靠模式|null,["before","in","after"|
 |href|string|节点的链接|null|
 |hide|bool|是否隐藏|false|
-|children|array|子节点|null
+|children|array|子节点,如果没有会根据树组件设定的childrenField来转换|null
 
