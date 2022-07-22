@@ -82,9 +82,9 @@ classDiagram
       NodeView-->Radio:单选框
     getVisibleCount-->TreeContainer:容器高度及可见节点数
     getData-->TreeContainer:url请求数据
-    preprocess-->TreeContainer:预处理数据
+    setChildrenPath-->TreeContainer:预处理数据
     showVisibleData-->TreeContainer:得到可见区域数据
-    func-->preprocess:【isSimpleData】转树结构
+    func-->setChildrenPath:【isSimpleData】转树结构
     func-->showVisibleData:扁平化数据
 
 ```
@@ -93,7 +93,7 @@ classDiagram
 @startuml
 父组件-->TreeContainer类:将父组件传递的ata
 父组件-->TreeContainer类:通过父组件传递的url加载后的data
-preprocess数据预加工类-->TreeContainer类:遍历data，生成id，pId,text,children必需属性，追加_path属性，isLast属性，方便后期各类树操作
+setChildrenPath数据预加工类-->TreeContainer类:遍历data，生成id，pId,text,children必需属性，追加_path属性，isLast属性，方便后期各类树操作
 getVisibleCount函数-->TreeContainer类:计算树容器的高度visibleHeight，得到可视区节点个数visibleCount
 handlerVisibleDat函数-->TreeContainer类:通过预处理后的data,visibleCount等参数得扁平化后数据flatData,filterData,visibleData等
 @enduml
@@ -122,7 +122,7 @@ TreeNode类-->NodeView类:设置节点的事件，透传props，渲染视图
 3. 提供公共函数，比如将简单数据转成树结构
 2. diff算法判断是否更新
 3. 树结构数据扁平化
-##### 3.3.6 preprocess-预处理数据
+##### 3.3.6 setChildrenPath-预处理数据
 3. 预处理数据，方便后期树节点的操作
 2. 通过idFeild,parentFeild,textFeild,childFeild得到·```id，pId,text,children```属性
 3. ```id[key]```,```pId[父节点id]```,```text[文本】```,```children[子节点]```
