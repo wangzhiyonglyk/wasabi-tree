@@ -26,7 +26,7 @@ import {
 import { myReducer, handlerData } from "./handlerData";
 import config from "./config";
 import TreeView from "./TreeView";
-
+import "../css/tree.css";
 /**
  * 根据高度得到可见数及初始下标
  * @param {*} containerid 容器id
