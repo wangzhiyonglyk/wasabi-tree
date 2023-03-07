@@ -26,6 +26,8 @@ import {
 import { myReducer, handlerData } from "./handlerData";
 import config from "./config";
 import TreeView from "./TreeView";
+import RightMenu from "../RightMenu";
+import dom from "../libs/dom";
 import "../css/tree.css";
 /**
  * 根据高度得到可见数及初始下标
@@ -126,8 +128,11 @@ const TreeContainer = React.forwardRef(function (
     selectAble,
     draggAble,
     dropAble,
+    addAble,
     renameAble,
+    renameIconAble,
     removeAble,
+    removeIconAble,
     asyncAble,
     foldBroAble,
     dropType,
@@ -139,12 +144,15 @@ const TreeContainer = React.forwardRef(function (
     onClick,
     onDoubleClick,
     onChecked,
+    onAdd,
     onRemove,
     onRename,
     onDrop,
     onDrag,
     onExpand,
     onAsync,
+    beforeContextMenu,
+    beforeAdd,
     beforeDrag,
     beforeRemove,
     beforeDrop,
@@ -152,6 +160,8 @@ const TreeContainer = React.forwardRef(function (
   },
   ref
 ) {
+  const menuRef = useRef(null); //右键菜单
+  const menuNode = useRef(null); //右键菜单节点
   // 节点在树的位置映射
   const [treecontainerid] = useState(uuid());
   const [treeid] = useState(uuid());
@@ -177,6 +187,61 @@ const TreeContainer = React.forwardRef(function (
     filterData: null, // 过滤后的数据
     hashData: new Map(), //hash路径数据
   });
+
+  /**
+   * 右键菜单
+   */
+  const onTreeContextMenu = useCallback((event) => {
+    if (beforeContextMenu) {
+      //自定义右键菜单事件
+      beforeContextMenu(
+        dom.findAncestorByClasss(event.target, "wasabi-tree-li-container"),
+        event
+      );
+    } else if (addAble || removeAble) {
+      //只有在新增的才有右键菜单
+      menuNode.current = dom.findAncestorByClasss(
+        event.target,
+        "wasabi-tree-li-container"
+      );
+      menuRef.current.open(event);
+    }
+  }, []);
+  /**
+   * 右键菜单单击事件
+   */
+  const onTreeMenuClick = useCallback(
+    (name) => {
+      let id = menuNode.current?.getAttribute("data-id");
+      if (/^[-+]?[0-9]+$/.test(id)) {
+        id = +id;
+      }
+      const node = findNodeById(
+        gobalData.current.hashData,
+        gobalData.current.data,
+        id
+      );
+      if (name === "delete") {
+        onTreeRemove(id, node?.text, node);
+      } else if (name === "add-sub") {
+        let add = (beforeAdd && beforeAdd(id, node?.text, node)) || true;
+        add && onAdd && onAdd("add-sub", id, node?.text, node);
+      } else if (name === "add") {
+        //找到父节点
+        const parentNode = findNodeById(
+          gobalData.current.hashData,
+          gobalData.current.data,
+          node.pId
+        );
+        let add =
+          (beforeAdd &&
+            beforeAdd(parentNode?.id, parentNode?.text, parentNode)) ||
+          true;
+        add && onAdd && onAdd(parentNode?.id, parentNode?.text, parentNode);
+      }
+    },
+    [onTreeRemove]
+  );
   /**
    * 单击事件
    */
@@ -681,7 +746,9 @@ const TreeContainer = React.forwardRef(function (
     selectAble,
     checkStyle,
     renameAble,
+    renameIconAble,
     removeAble,
+    renameIconAble,
     draggAble,
     dropAble,
     dropType,
@@ -719,6 +786,7 @@ const TreeContainer = React.forwardRef(function (
   }
   return (
     <div
+      onContextMenu={onTreeContextMenu}
       id={treecontainerid}
       onScroll={onScroll}
       className={"wasabi-tree-parent " + (className ?? "")}
@@ -736,6 +804,7 @@ const TreeContainer = React.forwardRef(function (
           width: 1,
         }}
       ></div>
+      <RightMenu ref={menuRef} onClick={onTreeMenuClick}></RightMenu>
     </div>
   );
 });
@@ -760,8 +829,11 @@ TreeContainer.propTypes = {
   checkStyle: PropTypes.oneOf(["checkbox", "radio", PropTypes.func]), //单选还是多选
   checkType: PropTypes.object, //勾选对于父子节点的关联关系
   radioType: PropTypes.oneOf(["level", "all"]), //单选时影响的层级
+  addAble: PropTypes.bool, //是否允许新增
   renameAble: PropTypes.bool, //是否允许重命名
+  renameIconAble: PropTypes.bool, //是否允许重命名图标
   removeAble: PropTypes.bool, //是否允许移除
+  removeIconAble: PropTypes.bool, //是否允许移除图标
   draggAble: PropTypes.bool, //是否允许拖动，
   dropAble: PropTypes.bool, //是否允许停靠
   dropType: PropTypes.array, //停靠的模式["before","in","after"]
@@ -781,6 +853,8 @@ TreeContainer.propTypes = {
   loadSuccess: PropTypes.func, //查询数据后的成功事件
 
   //before 事件
+  beforeContextMenu: PropTypes.func, //右键菜单打开前事件
+  beforeAdd: PropTypes.func, //添加前事件
   beforeDrag: PropTypes.func, //拖动前事件
   beforeDrop: PropTypes.func, //停靠前事件
   beforeRemove: PropTypes.func, //删除前事件

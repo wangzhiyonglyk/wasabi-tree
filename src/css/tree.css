@@ -14,7 +14,7 @@
   --danger-hover-color: #f78989;
   --warning-color: #e6a23c;
   --warning-hover-color: #ebb563;
-  --border-color: #dcdfe6;
+  --border-color: #d7dae2;
   --border-hover-color: #c0c4cc;
   --background-color: #f6f6f6;
   --background-hover-color: #e7e7e7;
@@ -61,7 +61,7 @@
 }
 
 /*树节点*/
-.wasabi-tree li.wasabi-tree-li {
+.wasabi-tree li.wasabi-tree-li-container {
   list-style: none;
   cursor: pointer;
   position: relative;

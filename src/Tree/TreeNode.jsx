@@ -29,8 +29,10 @@ function NodeView(props) {
     loadingId,
     selectAble,
     checkStyle,
+    renameIconAble,
     renameAble,
     removeAble,
+    removeIconAble,
     rename,
   } = props;
   //tree的事件
@@ -109,7 +111,7 @@ function NodeView(props) {
         <i
           className={
             (clickId === row.id ? " selected " : "") +
-            (row.open
+            (row.isOpened
               ? ` wasabi-tree-li-icon  ${icon}-down `
               : ` wasabi-tree-li-icon  ${icon}-right`)
           }
@@ -197,8 +199,9 @@ function NodeView(props) {
   //节点元素
   return (
     <li
-      className="wasabi-tree-li"
+      className="wasabi-tree-li-container"
       key={row.pId + "-" + row.id}
+      data-id={row.id}
       style={{ display: row.hide ? "none" : "flex" }}
     >
       {blankControl}
@@ -256,7 +259,7 @@ function NodeView(props) {
             </a>
           </div>
         )}
-        {!rename && renameAble ? (
+        {!rename && renameAble && renameIconAble ? (
           <i
             key="edit"
             className={"icon-edit edit"}
@@ -264,7 +267,7 @@ function NodeView(props) {
             onClick={beforeNodeRename}
           ></i>
         ) : null}
-        {!rename && removeAble ? (
+        {!rename && removeAble && removeIconAble ? (
           <i
             key="delete"
             className={"icon-delete edit"}
@@ -309,6 +312,7 @@ function TreeNode(props) {
    */
   const onDoubleClick = useCallback(() => {
     let row = TreeNodeFormat(props);
+    beforeNodeRename();
     props.onDoubleClick && props.onDoubleClick(row.id, row.text, row);
   }, [props]);
   /**
