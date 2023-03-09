@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 3131694 */
-  src: url('iconfont.woff?t=1641869248797') format('woff'),
-       url('iconfont.ttf?t=1641869248797') format('truetype'),
-       url('iconfont.svg?t=1641869248797#iconfont') format('svg');
+  src: url('iconfont.woff?t=1678340507062') format('woff'),
+       url('iconfont.ttf?t=1678340507062') format('truetype'),
+       url('iconfont.svg?t=1678340507062#iconfont') format('svg');
 }
 
 .iconfont {
@@ -13,20 +13,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-arrow-down:before {
-  content: "\e9bd";
+.icon-text:before {
+  content: "\e60c";
 }
 
-.icon-arrow-left:before {
-  content: "\e9be";
-}
-
-.icon-arrow-right:before {
-  content: "\e9bf";
-}
-
-.icon-arrow-up:before {
-  content: "\e9c0";
+.icon-check:before {
+  content: "\e605";
 }
 
 .icon-caret-down:before {
@@ -45,16 +37,8 @@
   content: "\ea29";
 }
 
-.icon-check:before {
-  content: "\ea38";
-}
-
 .icon-edit:before {
   content: "\eaa7";
-}
-
-.icon-text:before {
-  content: "\eabc";
 }
 
 .icon-folder:before {

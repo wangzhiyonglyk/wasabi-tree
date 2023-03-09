@@ -6,32 +6,18 @@
   "description": "",
   "glyphs": [
     {
-      "icon_id": "348219",
-      "name": "angle-down",
-      "font_class": "arrow-down",
-      "unicode": "e9bd",
-      "unicode_decimal": 59837
+      "icon_id": "10304433",
+      "name": "text",
+      "font_class": "text",
+      "unicode": "e60c",
+      "unicode_decimal": 58892
     },
     {
-      "icon_id": "348220",
-      "name": "angle-left",
-      "font_class": "arrow-left",
-      "unicode": "e9be",
-      "unicode_decimal": 59838
-    },
-    {
-      "icon_id": "348221",
-      "name": "angle-right",
-      "font_class": "arrow-right",
-      "unicode": "e9bf",
-      "unicode_decimal": 59839
-    },
-    {
-      "icon_id": "348222",
-      "name": "angle-up",
-      "font_class": "arrow-up",
-      "unicode": "e9c0",
-      "unicode_decimal": 59840
+      "icon_id": "1842068",
+      "name": "check",
+      "font_class": "check",
+      "unicode": "e605",
+      "unicode_decimal": 58885
     },
     {
       "icon_id": "348320",
@@ -62,25 +48,11 @@
       "unicode_decimal": 59945
     },
     {
-      "icon_id": "348342",
-      "name": "check",
-      "font_class": "check",
-      "unicode": "ea38",
-      "unicode_decimal": 59960
-    },
-    {
       "icon_id": "348454",
       "name": "edit",
       "font_class": "edit",
       "unicode": "eaa7",
       "unicode_decimal": 60071
-    },
-    {
-      "icon_id": "348476",
-      "name": "file-text-o",
-      "font_class": "text",
-      "unicode": "eabc",
-      "unicode_decimal": 60092
     },
     {
       "icon_id": "348489",

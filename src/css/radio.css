@@ -1,5 +1,6 @@
 /*create by wangzhiyong
 date:2016-04-01
+edit 2023-03-09
 desc:checkbox
 */
 .wasabi-checkul {
@@ -60,22 +61,13 @@ desc:checkbox
 .wasabi-checkul .checkbox-label.checked {
   border: 1px solid transparent;
   background-color: var(--primary-color);
+  color: white;
+  padding-top: 1px;
 }
 
-.wasabi-checkul .checkbox-label::after {
-  content: "\ea38";
-  position: absolute;
-  left: 1px;
-  top: 1px;
-  font-size: var(--font-size);
-  background-repeat: no-repeat;
-  color: transparent;
-}
-.wasabi-checkul .checkbox-label.checked::after {
-  color: white;
-}
 .wasabi-checkul .checkbox-label.halfcheck {
   background-color: white;
+  color: var(--primary-color);
 }
 
 .wasabi-checkul .checkbox-label.halfcheck::after {
