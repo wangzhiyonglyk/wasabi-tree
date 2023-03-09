@@ -5,6 +5,8 @@ date :2022-01-07 修复tregrid单击联动的bug
    2022-01-18 将tree组件全部改为hook
    2022-02-10 修复bug
     2022-07-21 重新整体数据管理，修复各类函数bug
+      2023-03-09 1. 添加新增与右键等功能，调整样式
+   2.使用上下文，调整数据流方式
  */
 import React, {
   useState,
@@ -23,12 +25,11 @@ import {
   getChecked,
   setChildrenPath,
 } from "./treeFunc";
-import { myReducer, handlerData } from "./handlerData";
+import { myReducer, handlerData, ShareContext } from "./handlerData";
 import config from "./config";
 import TreeView from "./TreeView";
-import RightMenu from "../RightMenu";
-import dom from "../libs/dom";
-import "../css/tree.css";
+import RightMenu from "./RightMenu";
+import "./tree.css";
 /**
  * 根据高度得到可见数及初始下标
  * @param {*} containerid 容器id
@@ -106,8 +107,8 @@ const handerLoadData = function (res, dataSource, loadSuccess) {
   return [];
 };
 /*
-注意了默认值不能给对象,否则在useeffect在父组件没传值时每次都认为是最新的
-*/
+  注意了默认值不能给对象,否则在useeffect在父组件没传值时每次都认为是最新的
+  */
 const TreeContainer = React.forwardRef(function (
   {
     componentType = "tree",
@@ -124,6 +125,7 @@ const TreeContainer = React.forwardRef(function (
     parentField = "pId",
     textField = "text",
     childrenField = "children",
+    isSimpleData = false,
     dottedAble = true,
     selectAble,
     draggAble,
@@ -136,7 +138,7 @@ const TreeContainer = React.forwardRef(function (
     asyncAble,
     foldBroAble,
     dropType,
-    isSimpleData,
+    textFormatter,
     checkStyle,
     checkType,
     radioType,
@@ -191,20 +193,14 @@ const TreeContainer = React.forwardRef(function (
   /**
    * 右键菜单
    */
-  const onTreeContextMenu = useCallback((event) => {
-    if (beforeContextMenu) {
+  const onTreeContextMenu = useCallback((id, text, row, power, event) => {
+    if (onContextMenu) {
       //自定义右键菜单事件
-      beforeContextMenu(
-        dom.findAncestorByClasss(event.target, "wasabi-tree-li-container"),
-        event
-      );
-    } else if (addAble || removeAble) {
+      onContextMenu(id, text, row, event);
+    } else {
       //只有在新增的才有右键菜单
-      menuNode.current = dom.findAncestorByClasss(
-        event.target,
-        "wasabi-tree-li-container"
-      );
-      menuRef.current.open(event);
+
+      menuRef.current.open(power, event);
     }
   }, []);
   /**
@@ -298,7 +294,19 @@ const TreeContainer = React.forwardRef(function (
    */
   const onTreeRemove = useCallback(
     (id, text, node) => {
-      if (window.confirm("您确定删除[" + text + "］吗")) {
+      if (window.$message) {
+        window.$message.confirm("您确定删除[" + text + "］吗", () => {
+          handlerData(
+            gobalData,
+            {
+              type: "onRemove",
+              payload: { id, options },
+            },
+            dispatch
+          );
+          onRemove && onRemove(id, text, node);
+        });
+      } else if (window.confirm("您确定删除[" + text + "］吗")) {
         handlerData(
           gobalData,
           {
@@ -416,8 +424,8 @@ const TreeContainer = React.forwardRef(function (
     [idField, parentField, textField, childrenField, isSimpleData, onExpand]
   );
   /** 
-滚动事件
-*/
+  滚动事件
+  */
   const onScroll = useCallback(() => {
     const vis = getVisibleCount(treecontainerid);
 
@@ -425,11 +433,11 @@ const TreeContainer = React.forwardRef(function (
   }, [treecontainerid]);
 
   /**
- * 渲染当前可见数据
- @param {*} startIndex 可见区数据的开始下标
- @param {*} endIndex 可见区数据的结束下标
- @param {*} visibleDataCount 可见区数据的数量
- */
+   * 渲染当前可见数据
+   @param {*} startIndex 可见区数据的开始下标
+   @param {*} endIndex 可见区数据的结束下标
+   @param {*} visibleDataCount 可见区数据的数量
+   */
   const showVisibleData = useCallback(
     (startIndex, endIndex, visibleDataCount) => {
       //这里的滚动不能单独弄成函数调整，原因不清楚
@@ -473,10 +481,10 @@ const TreeContainer = React.forwardRef(function (
   // 对外接口
   useImperativeHandle(ref, () => ({
     /** 
-  获取某个节点
-  @param {*} id
-  @returns
-*/
+    获取某个节点
+    @param {*} id
+    @returns
+  */
     findNode(id) {
       return findNodeById(
         gobalData.current.hashData,
@@ -485,9 +493,9 @@ const TreeContainer = React.forwardRef(function (
       );
     },
     /** 
-获取某个节点整个链路树
-* @param {*} id
-*/
+  获取某个节点整个链路树
+  * @param {*} id
+  */
     findParents(id) {
       const node = findNodeById(
         gobalData.current.hashData,
@@ -499,23 +507,23 @@ const TreeContainer = React.forwardRef(function (
         : [];
     },
     /*获取所有节点
-@returns
-*/
+  @returns
+  */
     getData() {
       return gobalData.current.data;
     },
     /*设置值
-@param {*} newValue
-*/
+  @param {*} newValue
+  */
     getChecked() {
       return getChecked(gobalData.current.data);
     },
     /**
-    设置勾选
-    @param {*} id
-    @param {*}  isChecked 是否勾选
-  
-*/
+      设置勾选
+      @param {*} id
+      @param {*}  isChecked 是否勾选
+    
+  */
     setChecked(id, isChecked) {
       handlerData(
         gobalData,
@@ -533,14 +541,14 @@ const TreeContainer = React.forwardRef(function (
       );
     },
     /*** 
-清除勾选
-*/
+  清除勾选
+  */
     clearChecked() {
       handlerData(gobalData, { type: "clearChecked" }, dispatch);
     },
     /*** 
-全部勾选
-*/
+  全部勾选
+  */
     checkedAll() {
       handlerData(gobalData, { type: "checkedAll" }, dispatch);
     },
@@ -553,17 +561,17 @@ const TreeContainer = React.forwardRef(function (
       dispatch({ type: "selectNode", payload: { gobalData, id } });
     },
     /*
-展开所有父节点
-@param {*} id
-*/
+  展开所有父节点
+  @param {*} id
+  */
     setLinkOpen(id) {
       handlerData(gobalData, { type: "setLinkOpen", payload: id }, dispatch);
     },
     /** 
-移除某个／多个节点[数组]
-
-@param {string,array} ids
-*/
+  移除某个／多个节点[数组]
+  
+  @param {string,array} ids
+  */
     remove(ids) {
       handlerData(
         gobalData,
@@ -572,17 +580,17 @@ const TreeContainer = React.forwardRef(function (
       );
     },
     /**
-移除所有
-
-*/
+  移除所有
+  
+  */
     removeAll() {
       handlerData(gobalData, { type: "removeAll" }, dispatch);
     },
 
     /**
-     * 筛选
-@param {*} value
-*/
+       * 筛选
+  @param {*} value
+  */
     filter(value) {
       document.getElementById(treecontainerid).scrollTop = 0; //回归到顶部
       //处理数据
@@ -590,10 +598,10 @@ const TreeContainer = React.forwardRef(function (
       onScroll();
     },
     /**
-追加节点
-@param {*} children
-@param {*} pId 父节点为空，即更新所有
-*/
+  追加节点
+  @param {*} children
+  @param {*} pId 父节点为空，即更新所有
+  */
     append(children, pId) {
       if (Array.isArray(children)) {
         if (!pId) {
@@ -611,9 +619,9 @@ const TreeContainer = React.forwardRef(function (
       }
     },
     /** 
-更新节点,不会更新节点id，父id
-@param {*} nodes  一个或多个(数组)
-*/
+  更新节点,不会更新节点id，父id
+  @param {*} nodes  一个或多个(数组)
+  */
     update(nodes) {
       if (nodes) {
         //格式化节点防止有些属性没传而影响后
@@ -625,8 +633,8 @@ const TreeContainer = React.forwardRef(function (
       }
     },
     /**
-更新所有
-*/
+  更新所有
+  */
     updateAll(newData) {
       document.getElementById(treecontainerid).scrollTop = 0; // 回归到顶部
       //处理数据
@@ -741,28 +749,29 @@ const TreeContainer = React.forwardRef(function (
    * 需要传下去的属性
    */
   const treeProps = {
+    treeid,
     componentType,
     dottedAble,
     selectAble,
     checkStyle,
+    addAble,
     renameAble,
     renameIconAble,
     removeAble,
-    renameIconAble,
+    removeIconAble,
     draggAble,
     dropAble,
     dropType,
-    asyncAble,
-    clickId: state.clickId,
-    loadingId: state.loadingId,
+    textFormatter,
   };
   //需要下传的事件
   const treeEvents = {
-    beforeDrag: beforeDrag,
-    beforeRemove: beforeRemove,
-    beforeDrop: beforeDrop,
-    beforeRename: beforeRename,
-    onDrag: onDrag,
+    beforeContextMenu,
+    beforeDrag,
+    beforeRemove,
+    beforeDrop,
+    beforeRename,
+    onDrag,
     onClick: onTreeClick,
     onDoubleClick: onTreeDoubleclick,
     onChecked: onTreeChecked,
@@ -770,42 +779,43 @@ const TreeContainer = React.forwardRef(function (
     onExpand: onTreeExpand,
     onRename: onTreeRename,
     onDrop: onTreeDrop,
+    onContextMenu: onTreeContextMenu,
   };
   let control;
   if (!componentType || componentType === "tree") {
-    control = (
-      <TreeView
-        {...treeProps}
-        {...state}
-        {...treeEvents}
-        treeid={treeid}
-      ></TreeView>
-    );
+    control = <TreeView></TreeView>;
   } else if (componentType === "treegrid") {
-    // control = <TreeGridView ref={treegrid} {...treeProps} {...props} {...state} {...treeEvents} treeid={treeid} ></TreeGridView>
+    // control = <TreeGridView ref={treegrid}  ></TreeGridView>
   }
   return (
-    <div
-      onContextMenu={onTreeContextMenu}
-      id={treecontainerid}
-      onScroll={onScroll}
-      className={"wasabi-tree-parent " + (className ?? "")}
-      style={style}
+    <ShareContext.Provider
+      value={{
+        treeProps,
+        treeEvents,
+        visibleData: state.visibleData, //可见数据单独
+      }}
     >
-      {control}
       <div
-        style={{
-          left: 0,
-          top: 0,
-          height:
-            gobalData.current.flatData &&
-            gobalData.current.flatData.length * config.rowDefaultHeight,
-          position: "absolute",
-          width: 1,
-        }}
-      ></div>
-      <RightMenu ref={menuRef} onClick={onTreeMenuClick}></RightMenu>
-    </div>
+        id={treecontainerid}
+        onScroll={onScroll}
+        className={"wasabi-tree-parent " + (className ?? "")}
+        style={style}
+      >
+        {control}
+        <div
+          style={{
+            left: 0,
+            top: 0,
+            height:
+              gobalData.current.flatData &&
+              gobalData.current.flatData.length * config.rowDefaultHeight,
+            position: "absolute",
+            width: 1,
+          }}
+        ></div>
+        <RightMenu ref={menuRef} onClick={onTreeMenuClick}></RightMenu>
+      </div>
+    </ShareContext.Provider>
   );
 });
 TreeContainer.propTypes = {
@@ -836,9 +846,11 @@ TreeContainer.propTypes = {
   removeIconAble: PropTypes.bool, //是否允许移除图标
   draggAble: PropTypes.bool, //是否允许拖动，
   dropAble: PropTypes.bool, //是否允许停靠
+  contextMenuAble: PropTypes.bool, //是否允许有右键功能
   dropType: PropTypes.array, //停靠的模式["before","in","after"]
   asyncAble: PropTypes.bool, //是否可以异步加载数据
   foldBroAble: PropTypes.bool, //展开节点时是否折叠兄弟节点
+  textFormatter: PropTypes.func, //自定义显示的文本格式
   //after事件
   onClick: PropTypes.func, //单击的事件
   onDoubleClick: PropTypes.func, //双击事件
@@ -846,7 +858,7 @@ TreeContainer.propTypes = {
   onExpand: PropTypes.func, //展开事件
   onRename: PropTypes.func, //重命名事件
   onRemove: PropTypes.func, //删除事件
-  onRightClick: PropTypes.func, //右键菜单
+  onContextMenu: PropTypes.func, //自定义右键菜单组件
   onDrag: PropTypes.func, //拖动事件
   onDrop: PropTypes.func, //停靠事件
   onAsync: PropTypes.func, //异步查询
