@@ -30,7 +30,6 @@
   padding: 0px;
   width: 100%;
   overflow: auto;
-  height: 100%;
 }
 
 .wasabi-tree {
@@ -148,39 +147,29 @@
 }
 
 /* 没有折叠图标的图标占位符 */
-.wasabi-tree .wasabi-tree-li-icon-line {
+.wasabi-tree .wasabi-tree-li-icon-placeholder {
   width: 20px;
   height: 100%;
   position: relative;
 }
 
-.wasabi-tree .wasabi-tree-li-icon-line.selected {
+.wasabi-tree .wasabi-tree-li-icon-placeholder.selected {
   background-color: var(--background-color);
 }
 
 /* 树表格与交叉表底部的分隔线 */
-.wasabi-treegrid .wasabi-tree .wasabi-tree-li-icon-line {
+.wasabi-treegrid .wasabi-tree .wasabi-tree-li-icon-placeholder {
   height: 41px;
   border-bottom: 1px solid var(--border-color);
 }
 
-.wasabi-pivot .wasabi-tree .wasabi-tree-li-icon-line {
+.wasabi-pivot .wasabi-tree .wasabi-tree-li-icon-placeholder {
   height: 41px;
   border-bottom: 1px solid var(--border-color);
-}
-
-/* 折叠图标前面的向右虚线 */
-.wasabi-tree .wasabi-tree-li-icon-line::after {
-  content: "";
-  border-bottom: 1px dotted var(--dotted-color);
-  width: 12px;
-  position: absolute;
-  top: 15px;
-  right: 0px;
 }
 
 /* 树表格与交叉表底部的分隔线 增加宽度是为了线足够长 */
-.wasabi-treegrid .wasabi-tree .wasabi-tree-li-icon-line::before {
+.wasabi-treegrid .wasabi-tree .wasabi-tree-li-icon-placeholder::before {
   content: "";
   border-left: none;
   position: absolute;
@@ -191,7 +180,7 @@
   width: 100000px;
 }
 
-.wasabi-pivot .wasabi-tree .wasabi-tree-li-icon-line::before {
+.wasabi-pivot .wasabi-tree .wasabi-tree-li-icon-placeholder::before {
   content: "";
   border-left: none;
   position: absolute;
@@ -202,20 +191,18 @@
   width: 100000px;
 }
 
-.wasabi-treegrid .wasabi-tree .wasabi-tree-li-icon-line.selected::before {
+.wasabi-treegrid .wasabi-tree .wasabi-tree-li-icon-placeholder.selected::before {
   background-color: var(--background-color);
 }
 
-.wasabi-pivot .wasabi-tree .wasabi-tree-li-icon-line.selected::before {
+.wasabi-pivot .wasabi-tree .wasabi-tree-li-icon-placeholder.selected::before {
   background-color: var(--background-color);
 }
 
 /*树的勾选框*/
 .wasabi-tree .wasabi-form-group {
-  margin-left: 0px;
-  margin-right: 0px;
-  padding-right: 4px;
-  margin-top: -1px;
+  margin: 0px;
+  padding-top: 2px;
   height: 30px;
   margin-bottom: 0px;
   width: 20px;
@@ -241,11 +228,11 @@
 }
 
 /*有子节点勾选框有向下的虚线 */
-.wasabi-tree .wasabi-form-group.hasChildren::after {
+.wasabi-tree .wasabi-form-group.hasChildren:after {
   content: "";
   position: absolute;
   border-left: 1px dotted var(--dotted-color);
-  height: 20px;
+  height: 14px;
   left: 7px;
   top: 25px;
 }

@@ -1,16 +1,10 @@
 /**
- * Created by zhiyongwang on 2016-04-05以后.
+ * Created by 王志勇 on 2016-04-05以后.
  * 2020-11-08
  * 复选框组件
  * 2022-01-11 将 tree组件独立出来
  */
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-  useImperativeHandle,
-} from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import processText from "../libs/processText";
 import "../css/radio.css";
 const isChecked = (child, value = "") => {
@@ -34,24 +28,6 @@ function CheckBox(props, ref) {
   useEffect(() => {
     setValue((props.value ?? "") + "");
   }, [props]);
-
-  //对外接口
-  useImperativeHandle(ref, () => ({
-    /**
-     * 设置值
-     * @param {*} newValue
-     */
-    setValue(newValue) {
-      setValue(newValue);
-    },
-    /**
-     * 获取值
-     * @returns
-     */
-    getValue: () => {
-      return value;
-    },
-  }));
 
   const { data, half, readOnly } = props;
   const onSelect = useCallback(
@@ -140,4 +116,4 @@ function CheckBox(props, ref) {
   }
   return null;
 }
-export default React.memo(React.forwardRef(CheckBox));
+export default React.memo(CheckBox);

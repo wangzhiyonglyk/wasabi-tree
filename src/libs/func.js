@@ -1,5 +1,5 @@
 /**
- * Created by zhiyongwang on 2016-06-08.
+ * Created by 王志勇 on 2016-06-08.
  * 将独立于项目的公共函数分享出来
  *2020-11-06，重新规划
  2021-09-10添加新功能
@@ -37,39 +37,6 @@ export function clone(obj) {
           for (let k in obj) {
             o[k] = clone(obj[k]);
           }
-        }
-      }
-      break;
-    default: //其他类型
-      o = obj;
-      break;
-  }
-  return o;
-}
-/**
- * 对象的浅复制
- * @param {*} obj 源对象
- * @returns
- */
-export function shallowClone(obj) {
-  let o;
-  switch (typeof obj) {
-    case "object":
-      if (obj === null) {
-        o = null;
-      } else {
-        if (obj instanceof Array) {
-          o = obj.slice(0);
-        } else if (obj instanceof Date) {
-          //对日期的复制
-          o = new Date(obj.valueOf());
-        } else if (obj instanceof Map) {
-          o = new Map(obj);
-        } else if (obj instanceof Set) {
-          o = new Set(obj);
-        } else {
-          //普通对象
-          o = { ...obj };
         }
       }
       break;
@@ -130,81 +97,6 @@ export function uuid() {
 
   let uuid = s.join("");
   return uuid;
-}
-
-/**
- * 判断两个对象是相同
- * @param {*} objA
- * @param {*} objB
- *  @param {bool} deep 是否深层遍历
- * @returns
- */
-export function diff(objA = null, objB = null, deep = true) {
-  //
-  if (objA === objB) {
-    //直接相等，返回
-    return false;
-  }
-  if (
-    Object.prototype.toString.call(objA) !==
-    Object.prototype.toString.call(objB)
-  ) {
-    //类型不同
-    return true;
-  }
-  if (typeof objA === "function") {
-    //函数
-    return objA.toString() !== objB.toString();
-  } else if (typeof objA === "object") {
-    //对象
-    //先拿所有的属性
-    try {
-      if (
-        Object.prototype.toString.call(objA).indexOf("Map") > -1 ||
-        Object.prototype.toString.call(objA).indexOf("Set") > -1
-      ) {
-        //如果是Map与Set则直接判断即可，因为两者的无法像普通对象遍历
-        return objA !== objB;
-      }
-      let oldProps = Object.getOwnPropertyNames(objA);
-      let newProps = Object.getOwnPropertyNames(objB);
-      if (oldProps.length !== newProps.length) {
-        return true; //不相同
-      }
-
-      for (let i = 0; i < oldProps.length; i++) {
-        let propName = oldProps[i]; //属性名
-        //值
-        let propA = objA[propName];
-        let propB = objB[propName];
-        if (deep) {
-          //注意条件不能合并
-          //深比较
-          if (diff(propA, propB, deep)) {
-            return true;
-          }
-        } else {
-          //浅比较
-          if (
-            typeof propA === "function" &&
-            propA.toString() !== propB.toString()
-          ) {
-            //如果属性是函数
-            return true;
-          } else if (propA !== propB) {
-            return true;
-          }
-        }
-      }
-    } catch (e) {
-      console.log(objA, objB);
-    }
-  } else {
-    //其他类型
-    return objA !== objB;
-  }
-
-  return false;
 }
 
 /**
@@ -296,7 +188,7 @@ export function toTreeData(
  */
 export function treeDataToFlatData(data) {
   let result = [];
-  if (data && data instanceof Array) {
+  if (Array.isArray(data)) {
     for (let i = 0; i < data.length; i++) {
       data[i]._isLast = i === data.length - 1 ? true : false; //目的为了画向下的虚线最一个不需要
       result.push(data[i]);

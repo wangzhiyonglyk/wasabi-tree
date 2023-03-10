@@ -1,6 +1,6 @@
 //树的公共方法    edit 2022-03-31
 //edit by 2022-07-22 完善
-
+//edit by 2023-03-10 修复拖动的bug
 /** 
 通过id找到节点路径
 * @param {*} hashData hash表
@@ -615,15 +615,15 @@ function moveBeforeOrAfterNode(
         //前面的节点
         let leftData = parentDropNode.children.slice(
           0,
-          dropNode._path[0] + step
+          dropNode._path[dropNode._path.length - 1] + step
         );
         //后面的节点
         let rightData = parentDropNode.children.slice(
-          dropNode._path[0] + step,
+          dropNode._path[dropNode._path.length - 1] + step,
           parentDropNode.children.length
         );
         dragNode.pId = "";
-        dragNode._path = dropNode._path[0] + step;
+        dragNode._path = dropNode._path[dropNode._path.length - 1] + step;
         leftData.push(dragNode);
         parentDropNode.children = [].concat(leftData, rightData);
         parentDropNode.children = setChildrenPath(
@@ -725,7 +725,7 @@ export function filter(flatData, filterValue = "") {
  *  * 追加子节点
  * @param {*} hashData
  * @param {*} data
- * @param {*} pId
+ * @param {*} pId 父节点id
  * @param {*} children 添加的子节点
  * @param {*} options
  * @returns

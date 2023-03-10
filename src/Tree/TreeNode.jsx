@@ -142,9 +142,13 @@ function NodeView({ row, nodeEvents }) {
     arrowIcon = (
       <i
         className={
-          (clickId === row.id ? " selected " : "") + " wasabi-tree-li-icon-line"
+          (clickId === row.id ? " selected " : "") +
+          " wasabi-tree-li-icon-placeholder"
         }
       >
+        {/* span用于右边加虚线*/}
+        <span className="wasabi-tree-li-icon-beforeRight"></span>
+        {/* 用于向下加虚线 */}
         <span
           className="wasabi-tree-li-icon-afterBelow"
           style={{
@@ -415,11 +419,11 @@ function TreeNode(row) {
     (event) => {
       if (draggAble) {
         //允许拖动，再通过函数判断
-        let isable = true; //默认允许
+        let isAble = true; //默认允许
         if (treeEvents.beforeDrag) {
-          isable = treeEvents.beforeDrag((row.id, row.text, row));
+          isAble = treeEvents.beforeDrag((row.id, row.text, row));
         }
-        if (isable) {
+        if (isAble) {
           event.dataTransfer.setData("dragItem", JSON.stringify(row)); //保存起来
           window.localStorage.setItem("wasabi-drag-item", JSON.stringify(row)); //保存起来给别的地方使用
           treeEvents.onDrag && treeEvents.onDrag(row.id, row.text, row);
@@ -544,7 +548,7 @@ function TreeNode(row) {
         isAble =
           treeEvents.beforeContextMenu &&
           treeEvents.beforeContextMenu(row?.id, row?.text, row, event);
-        if (isable) {
+        if (isAble) {
           treeEvents.onContextMenu &&
             treeEvents.onContextMenu(
               row?.id,
