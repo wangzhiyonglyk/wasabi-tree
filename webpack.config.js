@@ -2,7 +2,7 @@ const path = require("path");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin"); //分离js中的css
 module.exports = {
   // 模块的入口文件
-  entry: "./src/index.js",
+  entry: "./src/index.jsx",
   output: {
     // 输出文件的名称
     filename: "index.js",

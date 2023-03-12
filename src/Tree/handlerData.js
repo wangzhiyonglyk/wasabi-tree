@@ -42,7 +42,7 @@ export function handlerData(gobalData, action, dispatch) {
           isChecked,
           payload.checkType
         );
-      } else if (payload.checkstyle === "radio") {
+      } else if (payload.checkStyle === "radio") {
         current.data = setRadioChecked(
           current.hashData,
           current.data,
@@ -268,7 +268,6 @@ export function handlerData(gobalData, action, dispatch) {
       break;
     //展开所有父节点
     case "setLinkOpen":
-      dispatch({ type: "update", payload: { gobalData } });
       current.data = setLinkNodeOpen(current.hashData, current.data, payload);
       current.flatData = treeDataToFlatData(current.data);
       break;
@@ -276,7 +275,7 @@ export function handlerData(gobalData, action, dispatch) {
       break;
   }
   /**
-   * 异步执行，保证多条操作合并成一个action
+   * 如果有dispatch,异步执行，保证多条操作合并成一个action,更新数据
    */
   if (dispatch) {
     clearTimeout(current.asyncAction);
@@ -361,9 +360,9 @@ let preState; //状态值
 export function myReducer(state, action) {
   try {
     if (preAction === action) {
-      return preState;
+      return preState; // 防止重复
     }
-    preAction = action; //防止重复执行
+    preAction = action; // 防止重复执行
     const payload = action.payload;
     const current = payload?.gobalData?.current;
     switch (action.type) {

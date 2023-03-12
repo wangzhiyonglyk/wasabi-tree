@@ -10,7 +10,7 @@ desc:表单输入框样式
 .wasabi-form-group {
   margin-right: 10px;
   position: relative;
-  margin-bottom:10px;
+  margin-bottom: 10px;
   display: flex;
   white-space: nowrap;
 }
@@ -46,12 +46,12 @@ desc:表单输入框样式
   resize: vertical;
 }
 
-
 textarea.wasabi-input {
   height: 100%;
 }
 
-.wasabi-input[disabled], .wasabi-input[readOnly] {
+.wasabi-input[disabled],
+.wasabi-input[readOnly] {
   background-color: var(--background-color);
   border-color: var(--border-color);
   color: var(--border-hover-color);
@@ -67,17 +67,19 @@ textarea.wasabi-input {
 }
 
 .wasabi-input:focus {
-  border-color:var(--border-hover-color);
+  border-color: var(--border-hover-color);
 }
 
-.wasabi-input[disabled]:hover, .wasabi-input[readOnly]:hover {
+.wasabi-input[disabled]:hover,
+.wasabi-input[readOnly]:hover {
   background-color: var(--background-color);
   border-color: var(--border-color);
   color: var(--border-hover-color);
   cursor: not-allowed;
 }
 
-.wasabi-input[disabled]:focus, .wasabi-input[readOnly]:focus {
+.wasabi-input[disabled]:focus,
+.wasabi-input[readOnly]:focus {
   background-color: var(--background-color);
   border-color: var(--border-color);
   color: var(--border-hover-color);
@@ -138,8 +140,10 @@ input验证通过
 后台验证
  */
 
-.wasabi-form-group-body .valid, .wasabi-form-group-body .invalid, .wasabi-form-group-body .validing {
-  font-family: 'iconfont' !important;
+.wasabi-form-group-body .valid,
+.wasabi-form-group-body .invalid,
+.wasabi-form-group-body .validing {
+  font-family: "iconfont" !important;
   font-style: normal;
   width: 14px;
   height: 14px;

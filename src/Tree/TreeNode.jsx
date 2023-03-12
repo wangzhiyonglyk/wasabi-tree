@@ -26,15 +26,25 @@ function NodeView({ row, nodeEvents }) {
     treeProps;
 
   //节点操作权限，如果树组件本身禁用，则禁用，否则取节点本身（默认是可以的）
-  const selectAble = treeProps.selectAble || (row.selectAble ?? true);
+  const selectAble = treeProps.selectAble
+    ? treeProps.selectAble || (row.selectAble ?? true)
+    : false;
 
-  const renameIconAble =
-    treeProps.renameIconAble || (row.renameIconAble ?? true);
-  const renameAble = treeProps.renameAble || (row.renameAble ?? true);
-  const removeAble = treeProps.removeAble || (row.removeAble ?? true);
-  const removeIconAble =
-    treeProps.removeIconAble || (row.removeIconAble ?? true);
-  const draggAble = treeProps.draggAble || (row.draggAble ?? true);
+  const renameIconAble = treeProps.renameIconAble
+    ? treeProps.renameIconAble && (row.renameIconAble ?? true)
+    : false;
+  const renameAble = treeProps.renameAble
+    ? treeProps.renameAble && (row.renameAble ?? true)
+    : false;
+  const removeAble = treeProps.removeAble
+    ? treeProps.removeAble && (row.removeAble ?? true)
+    : false;
+  const removeIconAble = treeProps.removeIconAble
+    ? treeProps.removeIconAble && (row.removeIconAble ?? true)
+    : false;
+  const draggAble = treeProps.draggAble
+    ? treeProps.draggAble && (row.draggAble ?? true)
+    : false;
 
   //TreeNode传下来的的属性
   const {
@@ -83,33 +93,49 @@ function NodeView({ row, nodeEvents }) {
     }
   }
   //节点前面箭头图标
+  let height = row.isOpened ? 0 : row._isLast ? 4 : config.rowDefaultHeight;
+
+  let lineControl = [
+    // 用于右边加虚线
+    <span key="1" className="wasabi-tree-li-icon-beforeRight"></span>,
+    // 用于向下加虚线
+    <span
+      key="2"
+      className="wasabi-tree-li-icon-afterBelow"
+      style={{
+        height: height,
+      }}
+    ></span>,
+  ];
   let arrowIcon;
   if (row.isParent) {
     //是父节点才有箭头
-    if (row.isOpened) {
-      if (row.arrowUnFoldIcon) {
-        arrowIcon = (
-          <div
-            className={"wasabi-tree-li-icon"}
-            style={{ display: "inline-block" }}
-            onClick={row.isParent ? onExpand : null}
-          >
-            {row.arrowUnFoldIcon}
-          </div>
-        );
-      }
-    } else {
-      if (row.arrowFoldIcon) {
-        arrowIcon = (
-          <div
-            className={"wasabi-tree-li-icon"}
-            style={{ display: "inline-block" }}
-            onClick={row.isParent ? onExpand : null}
-          >
-            {row.arrowFoldIcon}
-          </div>
-        );
-      }
+    if (row.isOpened && row.arrowUnFoldIcon) {
+      // 自定义展开图标
+      arrowIcon = (
+        <div
+          className={"wasabi-tree-li-icon"}
+          style={{ display: "inline-block" }}
+          onClick={row.isParent ? onExpand : null}
+        >
+          {row.arrowUnFoldIcon}
+          {lineControl}
+        </div>
+      );
+    }
+
+    if (!row.isOpened && row.arrowFoldIcon) {
+      // 自定义折叠图标
+      arrowIcon = (
+        <div
+          className={"wasabi-tree-li-icon"}
+          style={{ display: "inline-block" }}
+          onClick={row.isParent ? onExpand : null}
+        >
+          {row.arrowFoldIcon}
+          {lineControl}
+        </div>
+      );
     }
     if (!arrowIcon) {
       let icon = componentType === "tree" ? "icon-caret" : "icon-arrow";
@@ -129,9 +155,7 @@ function NodeView({ row, nodeEvents }) {
           <span
             className="wasabi-tree-li-icon-afterBelow"
             style={{
-              height:
-                (childrenLength + 1) * config.rowDefaultHeight +
-                (row._isLast ? config.rowDefaultHeight * -1 : 15),
+              height: height,
             }}
           ></span>
         </i>
@@ -146,17 +170,7 @@ function NodeView({ row, nodeEvents }) {
           " wasabi-tree-li-icon-placeholder"
         }
       >
-        {/* span用于右边加虚线*/}
-        <span className="wasabi-tree-li-icon-beforeRight"></span>
-        {/* 用于向下加虚线 */}
-        <span
-          className="wasabi-tree-li-icon-afterBelow"
-          style={{
-            height:
-              (childrenLength + 1) * config.rowDefaultHeight +
-              (row._isLast ? config.rowDefaultHeight * -1 : 15),
-          }}
-        ></span>
+        {lineControl}
       </i>
     );
   }
@@ -170,7 +184,7 @@ function NodeView({ row, nodeEvents }) {
         /**有子节点有向下的虚线**/
         className={
           (clickId === row.id ? " selected " : "") +
-          (childrenLength > 0 ? " hasChildren " : "  ")
+          (row.isOpened && childrenLength > 0 ? " hasChildren " : "  ")
         }
         value={row.isChecked ? row.id : ""}
         data={[{ value: row.id, text: "" }]}
@@ -183,10 +197,10 @@ function NodeView({ row, nodeEvents }) {
         type="radio"
         half={row.half}
         name={"node" + row.id}
-        /**有子节点有向下的虚线**/
+        /**有子节点并且展开才有向下的虚线**/
         className={
           (clickId === row.id ? " selected " : "") +
-          (childrenLength > 0 ? " hasChildren " : "  ")
+          (row.isOpened && childrenLength > 0 ? " hasChildren " : "  ")
         }
         value={row.isChecked ? row.id : ""}
         data={[{ value: row.id, text: "" }]}
@@ -254,17 +268,16 @@ function NodeView({ row, nodeEvents }) {
             onDragEnd={onNodeDragEnd}
             onDragStart={onNodeDragStart}
           >
-            {/* 没有勾选功能时并且有子节点时有虚线 */}
-            <i
-              key="3"
-              className={
-                (!selectAble && childrenLength
-                  ? " noCheckhasChildren "
-                  : "  ") +
-                iconCls +
-                " wasabi-tree-text-icon"
-              }
-            ></i>
+            {/* 没有勾选功能展开时并且有子节点时有虚线 */}
+            <i key="3" className={iconCls + " wasabi-tree-text-icon"}>
+              <span
+                className={
+                  !selectAble && row.isOpened && childrenLength
+                    ? " noCheckhasChildren "
+                    : "  "
+                }
+              ></span>
+            </i>
             <a href={row.href} className="wasabi-tree-txt">
               {text}
             </a>
@@ -301,13 +314,24 @@ function TreeNode(row) {
 
   const { dropType } = treeProps; //拖动方式
   //节点操作权限，如果树组件本身禁用，则禁用，否则取节点本身（默认是可以的）
-  const contextMenuAble =
-    treeProps.contextMenuAble || (row.contextMenuAble ?? true);
-  const addAble = treeProps.addAble || (row.addAble ?? true);
-  const renameAble = treeProps.renameAble || (row.renameAble ?? true);
-  const removeAble = treeProps.removeAble || (row.removeAble ?? true);
-  const draggAble = treeProps.draggAble || (row.draggAble ?? true);
-  const dropAble = treeProps.dropAble || (row.dropAble ?? true);
+  const contextMenuAble = treeProps.contextMenuAble
+    ? treeProps.contextMenuAble && (row.contextMenuAble ?? true)
+    : false;
+  const addAble = treeProps.addAble
+    ? treeProps.addAble && (row.addAble ?? true)
+    : false;
+  const renameAble = treeProps.renameAble
+    ? treeProps.renameAble && (row.renameAble ?? true)
+    : false;
+  const removeAble = treeProps.removeAble
+    ? treeProps.removeAble && (row.removeAble ?? true)
+    : false;
+  const draggAble = treeProps.draggAble
+    ? treeProps.draggAble && (row.draggAble ?? true)
+    : false;
+  const dropAble = treeProps.dropAble
+    ? treeProps.dropAble && (row.dropAble ?? true)
+    : false;
   useEffect(() => {
     if (rename) {
       let input = document.getElementById(textid);
@@ -545,9 +569,9 @@ function TreeNode(row) {
     (event) => {
       if (contextMenuAble) {
         let isAble = true;
-        isAble =
-          treeEvents.beforeContextMenu &&
-          treeEvents.beforeContextMenu(row?.id, row?.text, row, event);
+        if (treeEvents.beforeContextMenu) {
+          isAble = treeEvents.beforeContextMenu(row?.id, row?.text, row, event);
+        }
         if (isAble) {
           treeEvents.onContextMenu &&
             treeEvents.onContextMenu(
@@ -557,14 +581,15 @@ function TreeNode(row) {
               {
                 addAble,
                 removeAble,
-                removeAble,
+                renameAble,
               },
+              beforeNodeRename,
               event
             );
         }
       }
     },
-    [contextMenuAble, row, treeEvents.onContextMenu]
+    [contextMenuAble, beforeNodeRename, row, treeEvents.onContextMenu]
   );
   const nodeEvents = {
     rename,

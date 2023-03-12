@@ -67,14 +67,14 @@ class RightMenu extends React.PureComponent {
 
         {this.state.renameAble ? (
           <ContentMenuPanel key="3" name="rename">
-            <LinkButton theme="info" iconCls="icon-add" title="重命名">
+            <LinkButton theme="info" iconCls="icon-edit" title="重命名">
               重命名
             </LinkButton>
           </ContentMenuPanel>
         ) : null}
 
         {this.state.removeAble ? (
-          <ContentMenuPanel key="4" name="delete">
+          <ContentMenuPanel key="4" name="remove">
             <LinkButton theme="info" iconCls="icon-delete" title="删除">
               删除
             </LinkButton>

@@ -128,14 +128,15 @@ const TreeContainer = React.forwardRef(function (props, ref) {
     childrenField = "children",
     isSimpleData = false,
     dottedAble = true,
-    selectAble,
-    draggAble,
-    dropAble,
+    contextMenuAble,
     addAble,
     renameAble,
     renameIconAble,
     removeAble,
     removeIconAble,
+    selectAble,
+    draggAble,
+    dropAble,
     asyncAble,
     foldBroAble,
     dropType,
@@ -147,6 +148,7 @@ const TreeContainer = React.forwardRef(function (props, ref) {
     onClick,
     onDoubleClick,
     onChecked,
+    onContextMenu,
     onAdd,
     onRemove,
     onRename,
@@ -167,7 +169,7 @@ const TreeContainer = React.forwardRef(function (props, ref) {
       : config.gridRowDefaultHeight;
   const treegridRef = useRef(null); //树表格
   const menuRef = useRef(null); //右键菜单
-  const menuNodeRef = useRef(null); //右键菜单节点
+  const contextMenuNode = useRef(null); //右键菜单的节点
   // 节点在树的位置映射
   const [treecontainerid] = useState(uuid());
   const [treeid] = useState(uuid());
@@ -195,49 +197,74 @@ const TreeContainer = React.forwardRef(function (props, ref) {
   });
 
   /**
-   * 右键菜单
+   *
+   * @param {*} id
+   * @param {*} text
+   * @param {*} row 节点
+   * @param {*} power 节点的增删改权限
+   * @param {*} beforeNodeRename 节点的重命名前事件，保留好，方便右键点击时回调
+   * @param {*} event 事件源，用于自定义右键菜单面板时使用
    */
-  const onTreeContextMenu = useCallback((id, text, row, power, event) => {
-    if (onContextMenu) {
-      //自定义右键菜单事件
-      onContextMenu(id, text, row, event);
-    } else {
-      //只有在新增的才有右键菜单
-
-      menuRef.current.open(power, event);
-    }
-  }, []);
+  const onTreeContextMenu = useCallback(
+    (id, text, row, power, beforeNodeRename, event) => {
+      contextMenuNode.current = {
+        parentNode: row,
+        power,
+        beforeNodeRename,
+      };
+      if (onContextMenu) {
+        //自定义右键菜单事件
+        onContextMenu(id, text, row, power, event);
+      } else {
+        //只有在新增的才有右键菜单
+        menuRef.current.open(power, event);
+      }
+    },
+    []
+  );
   /**
    * 右键菜单单击事件
    */
   const onTreeMenuClick = useCallback(
     (name) => {
-      let id = menuNodeRef.current?.getAttribute("data-id");
-      if (/^[-+]?[0-9]+$/.test(id)) {
-        id = +id;
-      }
-      const node = findNodeById(
-        gobalData.current.hashData,
-        gobalData.current.data,
-        id
-      );
-      if (name === "delete") {
-        onTreeRemove(id, node?.text, node);
-      } else if (name === "add-sub") {
-        let add = (beforeAdd && beforeAdd(id, node?.text, node)) || true;
-        add && onAdd && onAdd("add-sub", id, node?.text, node);
-      } else if (name === "add") {
-        //找到父节点
-        const parentNode = findNodeById(
-          gobalData.current.hashData,
-          gobalData.current.data,
-          node.pId
-        );
-        let add =
-          (beforeAdd &&
-            beforeAdd(parentNode?.id, parentNode?.text, parentNode)) ||
-          true;
-        add && onAdd && onAdd(parentNode?.id, parentNode?.text, parentNode);
+      let { parentNode, power, beforeNodeRename } = contextMenuNode.current; //找到节点;
+      if (name === "remove" && power.removeAble) {
+        //先判断是否有权限
+        let isAble = true;
+        if (beforeRemove) {
+          isAble = beforeRemove(parentNode.id, parentNode.text, parentNode);
+        }
+        if (isAble) {
+          //允许才调用树组件的
+          onTreeRemove(parentNode?.id, parentNode?.text, parentNode);
+        }
+      } else if (name === "rename" && power.renameAble) {
+        let isAble = true;
+        if (beforeRename) {
+          isAble = beforeRename(parentNode.id, parentNode.text, parentNode);
+        }
+        if (isAble) {
+          //允许才调用树组件的
+          beforeNodeRename(parentNode?.id, parentNode?.text, parentNode);
+        }
+      } else if ((name === "add" || name === "sub-add") && power.addAble) {
+        //添加兄弟节点，找到父节点
+        parentNode =
+          name === "add"
+            ? findNodeById(
+                gobalData.current.hashData,
+                gobalData.current.data,
+                parentNode.pId
+              )
+            : parentNode;
+        //添加子节点
+        let isaddAble = true;
+        if (typeof beforeAdd === "function") {
+          isaddAble = beforeAdd(parentNode?.id, parentNode?.text, parentNode);
+        }
+        isaddAble &&
+          onAdd &&
+          onAdd(parentNode?.id, parentNode?.text, parentNode);
       }
     },
     [onTreeRemove]
@@ -771,6 +798,7 @@ const TreeContainer = React.forwardRef(function (props, ref) {
     dottedAble,
     selectAble,
     checkStyle,
+    contextMenuAble,
     addAble,
     renameAble,
     renameIconAble,
@@ -804,7 +832,6 @@ const TreeContainer = React.forwardRef(function (props, ref) {
   } else if (componentType === "treegrid") {
     control = <div>未实现</div>;
   }
-console.log("data",gobalData.current)
   return (
     <ShareContext.Provider
       value={{

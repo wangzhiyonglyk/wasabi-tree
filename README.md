@@ -29,6 +29,7 @@
 
 1. 树的全部全部 data,扁平化数据 flatData,筛选后的数据等都不参与 State
 2. 设置异步更新，将多次数据操作合并成一次更新`(父组件可能同时调用几个方法)`
+3. state 只有四个属性：`visibleData,loadingId,clickId,scrollIndex`
 
 ##### 2.3.2 预处理数据，标准化节点数据结构：`id,pId,text,children`
 
@@ -58,6 +59,10 @@
 ##### 2.3.7 缓存所有方法与组件，避免重复渲染，最大限度的优化组件
 
 利用 useCallBack,useReduce,memo 等方式来减少重定义与渲染次数
+
+##### 2.3.8 利用上下文传递透传树组件的属性与方法
+
+利用 context 来缓存树组件本身的属性避属性一级一级传递
 
 #### 2.2 十万数据量的渲染情况
 
@@ -94,18 +99,23 @@ classDiagram
     class Radio{
         单选框
     }
+     class Text{
+        文本框
+    }
+
 
     TreeContainer-->TreeView:树组件View
     TreeView-->TreeNode:树节点
     TreeNode-->NodeView:树节点View
     NodeView-->CheckBox:复选框
       NodeView-->Radio:单选框
+      NodeView-->Text:文本框
     getVisibleCount-->TreeContainer:容器高度及可见节点数
     getData-->TreeContainer:url请求数据
-    setChildrenPath-->TreeContainer:预处理数据
+    setChildrenPath-->TreeContainer:格式化数据，增加_path,_isLast,
     showVisibleData-->TreeContainer:得到可见区域数据
-    func-->setChildrenPath:【isSimpleData】转树结构
-    func-->showVisibleData:扁平化数据
+    func-->setChildrenPath:【isSimpleData为true时toTreeData】转树结构
+    func-->showVisibleData:[treeDataToFlatData方法]扁平化数据
 
 ```
 
@@ -113,20 +123,29 @@ classDiagram
 
 ```plantuml
 @startuml
-父组件-->TreeContainer类:将父组件传递的ata
-父组件-->TreeContainer类:通过父组件传递的url加载后的data
-setChildrenPath数据预加工类-->TreeContainer类:遍历data，生成id，pId,text,children必需属性，追加_path属性，isLast属性，方便后期各类树操作
-getVisibleCount函数-->TreeContainer类:计算树容器的高度visibleHeight，得到可视区节点个数visibleCount
-handlerVisibleDat函数-->TreeContainer类:通过预处理后的data,visibleCount等参数得扁平化后数据flatData,filterData,visibleData等
+父组件-->TreeContainer:将父组件传递的ata
+父组件-->TreeContainer:通过父组件传递的url加载后的data
+setChildrenPath数据预加工类-->TreeContainer:遍历data，生成id，pId,text,children必需属性，追加_path属性，isLast属性，方便后期各类树操作
+getVisibleCount函数-->TreeContainer:计算树容器的高度visibleHeight，得到可视区节点个数visibleCount
+handlerVisibleData处理数据-->TreeContainer:通过预处理后的data,visibleCount等参数得扁平化后数据flatData,filterData,visibleData等
 @enduml
 ```
 
 ```plantuml
 @startuml
+TreeContainter-->handlerData:，传递action,与dispatch
+handlerData-->TreeContainter:利用data:生成新的state(visibleData,loadingId,clickId,scrollIndex)
+handlerData-->treeFunc:调用api,处理数据
+treeFunc-->handlerData:返回新的data
+@enduml
+```
 
-TreeContainer类-->TreeView类:传递visibleData,events,其他props，渲染可见的节点
-TreeView类-->TreeNode类:提取节点所需的props，event等，渲染具体的节点
-TreeNode类-->NodeView类:设置节点的事件，透传props，渲染视图
+```plantuml
+@startuml
+TreeContainer-->TreeView:传递visibleData,props.events作为上下文传递给节点，渲染可见的节点
+TreeView-->TreeNode:for循环visibleData，渲染具体的节点
+TreeNode-->TreeContainer: 设置节点的事件，借助上下文回调处理数据
+TreeNode-->NodeView:渲染节点视图
 @enduml
 ```
 
@@ -202,6 +221,7 @@ Radio：单选框
 #### 2.1 下载方式
 
 npm install wasabi-tree
+yarn add wasabi-tree
 
 #### 2.2 引入方式
 
@@ -244,23 +264,25 @@ function Demo(props) {
 
 #### 2.4 事件
 
-| 属性名           | 类型 | 说明                                       | 参数                                                       | 返回值                               |
-| ---------------- | ---- | ------------------------------------------ | ---------------------------------------------------------- | ------------------------------------ |
-| onClick          | func | 单击的事件                                 | id,text,row                                                |
-| onDoubleClick    | func | 双击事件                                   | id,text,row                                                |
-| onCheck          | func | 勾选/取消勾选事件                          | isChecked, id, text, row                                   |
-| onExpand         | func | 展开/折叠事件                              | open, id, text, row                                        |
-| onRename         | func | 重命名事件                                 | id, text, row, newText                                     |
-| onRemove         | func | 删除事件                                   | id, text, row                                              |
-| onContextMenu    | func | 右键菜单                                   | id, text, row,event                                        |                           |
-| onDrag           | func | 拖动事件                                   | id, text, row                                              |
-| onDrop           | func | 停靠事件                                   | dragNode(移动节点), dropNode(停靠节点), dragType(停靠方式) |
-| onAsync          | func | 节点异步查询，为 null，则会通过 url 来处理 | id, text, row                                              | data,即异步加载后节点数据            |
-| beforeDrag       | func | 拖动前事件                                 | id, text, row                                              | `true(同意),false(不同意)`           |
-| beforeDrop       | func | 停靠前事件                                 | dragNode(移动节点), dropNode(停靠节点), dragType(停靠方式  | `true(同意),false(不同意)`           |
-| beforeRemove     | func | 删除前事件                                 | id, text, row                                              | `true(同意),false(不同意)`           |
-| beforeRename     | func | 重命名前事件                               | id, text, row                                              | `true(同意),false(不同意)`           |
-| beforeRightClick | func | 鼠标右键前事件                             | id, text, row                                              | `true(同意),false(不同意)  暂未开发` |
+| 属性名            | 类型 | 说明                                       | 参数                                                       | 返回值                     |
+| ----------------- | ---- | ------------------------------------------ | ---------------------------------------------------------- | -------------------------- |
+| onClick           | func | 单击的事件                                 | id,text,row                                                | null                       |
+| onDoubleClick     | func | 双击事件                                   | id,text,row                                                | null                       |
+| onCheck           | func | 勾选/取消勾选事件                          | isChecked, id, text, row                                   | null                       |
+| onExpand          | func | 展开/折叠事件                              | open, id, text, row                                        | null                       |
+| onAdd             | func | 新增事件                                   | id, text, parentNode                                       | null                       |
+| onRename          | func | 重命名事件                                 | id, text, row, newText                                     | null                       |
+| onRemove          | func | 删除事件                                   | id, text, row                                              | null                       |
+| onContextMenu     | func | 自定义右键菜单视图                         | id, text, row,event                                        | null                       |
+| onDrag            | func | 拖动事件                                   | id, text, row                                              | null                       |
+| onDrop            | func | 停靠事件                                   | dragNode(移动节点), dropNode(停靠节点), dragType(停靠方式) | null                       |
+| onAsync           | func | 节点异步查询，为 null，则会通过 url 来处理 | id, text, row                                              | 返回值即异步加载后节点数据 |
+| beforeContextMenu | func | 右键菜单前事件                             | id, text, row ，event                                      | `true(同意),false(不同意)` |
+| beforeAdd         | func | 新增前事件                                 | id, text, row                                              | `true(同意),false(不同意)` |
+| beforeRemove      | func | 删除前事件                                 | id, text, row                                              | `true(同意),false(不同意)` |
+| beforeRename      | func | 重命名前事件                               | id, text, row                                              | `true(同意),false(不同意)` |
+| beforeDrag        | func | 拖动前事件                                 | id, text, row                                              | `true(同意),false(不同意)` |
+| beforeDrop        | func | 停靠前事件                                 | dragNode(移动节点), dropNode(停靠节点), dragType(停靠方式  | `true(同意),false(不同意)` |
 
 #### 2.5 组件方法（ref)
 
@@ -279,29 +301,32 @@ function Demo(props) {
 | append       | func | 追加某个节点,id 为空时即为更新全部                 | children,id    | null          |
 | update       | func | 更新某个节点,或者某组[node,node]                   | nodes          | null          |
 | updateAll    | func | 更新整个树                                         | data           | null          |
-| filter       | func | 过滤节点                                           | value          | null          |
+| filter       | func | 过滤节点,过滤的视图请自行设计                      | value          | null          |
 | adjust       | func | 重新调整容器，适应容器高度发生变化                 | null           | null          |
 
 #### 2.6 节点 Node 属性
 
-| 属性名          | 类型   | 说明                                                        | 默认值                      |
-| --------------- | ------ | ----------------------------------------------------------- | --------------------------- |
-| isParent        | bool   | 是否是父节点                                                | null                        |
-| id              | string | key 值,如果没有会根据树组件设定的 idField 来转换            | ""                          |
-| pId             | string | 父节点 key 值 如果没有会根据树组件设定的 parentField 来转换 | ""                          |
-| text            | string | 节点文本,如果没有会根据树组件设定的 textField 来转换        | ""                          |
-| title           | string | 提示信息                                                    | ""                          |
-| iconCls         | string | 默认图标                                                    | icon-text                   |
-| iconClose       | string | [父节点]关闭图标                                            | icon-folder                 |
-| iconOpen        | string | [父节点]展开图标                                            | icon-folder                 |
-| arrowUnFoldIcon | node   | 节点展开的箭头图标组件                                      | icon-arrow-down             |
-| arrowFoldIcon   | node   | 节点折叠的箭头图标组件                                      | icon-arrow-right            |
-| isOpened        | bool   | 是否处于打开状态                                            | false                       |
-| isChecked       | bool   | 是否被勾选                                                  | false                       |
-| selectAble      | bool   | 是否允许勾选                                                | false                       |
-| draggAble       | bool   | 是否允许拖动                                                | false                       |
-| dropAble        | bool   | 是否允许停靠                                                | false                       |
-| dropType        | array  | 停靠模式                                                    | null,["before","in","after" |
-| href            | string | 节点的链接                                                  | null                        |
-| hide            | bool   | 是否隐藏                                                    | false                       |
-| children        | array  | 子节点,如果没有会根据树组件设定的 childrenField 来转换      | null                        |
+| 属性名          | 类型   | 说明                                                        | 默认值           |
+| --------------- | ------ | ----------------------------------------------------------- | ---------------- |
+| isParent        | bool   | 是否是父节点                                                | null             |
+| id              | string | key 值,如果没有会根据树组件设定的 idField 来转换            | ""               |
+| pId             | string | 父节点 key 值 如果没有会根据树组件设定的 parentField 来转换 | ""               |
+| text            | string | 节点文本,如果没有会根据树组件设定的 textField 来转换        | ""               |
+| title           | string | 提示信息                                                    | ""               |
+| iconCls         | string | 默认图标                                                    | icon-text        |
+| iconClose       | string | [父节点]关闭图标                                            | icon-folder      |
+| iconOpen        | string | [父节点]展开图标                                            | icon-folder      |
+| arrowUnFoldIcon | node   | 节点展开的箭头图标组件                                      | icon-arrow-down  |
+| arrowFoldIcon   | node   | 节点折叠的箭头图标组件                                      | icon-arrow-right |
+| isOpened        | bool   | 是否处于打开状态                                            | null             |
+| isChecked       | bool   | 是否被勾选                                                  | null             |
+| addAble         | bool   | 是否允许新增                                                | null             |
+| removeAble      | bool   | 是否允许删除                                                | null             |
+| removeIconAble  | bool   | 是否允许删除图                                              | null             |
+| renameAble      | bool   | 是否允许重命名                                              | null             |
+| renameIconAble  | bool   | 是否允许重命名图标                                          | null             |
+| selectAble      | bool   | 是否允许勾选                                                | null             |
+| draggAble       | bool   | 是否允许拖动                                                | null             |
+| dropAble        | bool   | 是否允许停靠                                                | null             |
+| hide            | bool   | 是否隐藏                                                    | null             |
+| children        | array  | 子节点,如果没有会根据树组件设定的 childrenField 来转换      | null             |

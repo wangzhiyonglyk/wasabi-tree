@@ -30,6 +30,7 @@
   padding: 0px;
   width: 100%;
   overflow: auto;
+  height: 100%;
 }
 
 .wasabi-tree {
@@ -112,7 +113,7 @@
   height: 40px;
   border-left: 1px dotted var(--dotted-color);
   left: 7px;
-  top: 10px;
+  top: 12px;
 }
 
 /* 树表格与交叉表的底部分隔线,增加宽度是为了线足够长 */
@@ -191,7 +192,9 @@
   width: 100000px;
 }
 
-.wasabi-treegrid .wasabi-tree .wasabi-tree-li-icon-placeholder.selected::before {
+.wasabi-treegrid
+  .wasabi-tree
+  .wasabi-tree-li-icon-placeholder.selected::before {
   background-color: var(--background-color);
 }
 
@@ -299,7 +302,6 @@
   font-size: inherit;
   height: 100%;
   padding-top: 8px;
-  position: relative;
   padding-right: 4px;
 }
 
@@ -313,13 +315,14 @@
 }
 
 /*没有勾选功能时并且有子节点时有向下虚线*/
-.wasabi-tree .wasabi-tree-text-icon.noCheckhasChildren::after {
+.wasabi-tree .wasabi-tree-text-icon .noCheckhasChildren {
   content: "";
   position: absolute;
   border-left: 1px dotted var(--dotted-color);
-  height: 7px;
-  bottom: 0px;
+  height: 30px;
+  bottom: 0;
   left: 7px;
+  top: 20px;
 }
 
 /*文本*/
@@ -365,4 +368,13 @@
   font-size: inherit;
   transform: translateY(8px);
   margin-left: 4px;
+}
+
+/****单选按钮***/
+.wasabi-tree .wasabi-radio-btn {
+  margin-top: 0px;
+}
+/***复选按钮***/
+.wasabi-tree .wasabi-checkul .checkbox-label {
+  margin-top: 0px;
 }
