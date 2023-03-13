@@ -169,7 +169,8 @@ export function setRadioChecked(hashData, data, id, isChecked, radioType) {
           } else if (nodes && nodes.length === 1) {
             // 根节点
             for (let i = 0; i < data.length; i++) {
-              data[i].isChecked = falsedata[i].half = false;
+              data[i].isChecked = false;
+              data[i].half = false;
             }
             // 本身
             if (nodes && nodes.length > 0) {
@@ -290,7 +291,9 @@ export function clearChecked(data) {
         }
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.log("e", e);
+  }
   return data;
 }
 /**
@@ -719,7 +722,9 @@ export function filter(flatData, filterValue = "") {
         }
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.log("e", e);
+  }
   return [];
 }
 /**
