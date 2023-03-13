@@ -143,7 +143,6 @@ export function setChecked(hashData, data, id, isChecked, checkType) {
  * @returns
  */
 export function setRadioChecked(hashData, data, id, isChecked, radioType) {
-  console.log("setRadioChecked");
   try {
     if (Array.isArray(data)) {
       const node = findNodeById(hashData, data, id);
