@@ -416,7 +416,7 @@ export function removeNode(hashData, data, id) {
           try {
             data.splice(nodes[0]._path[0], 1); //删除
             hashData.delete(nodes[0].id); //删除hash记录
-            return setChildrenPath(hashData, "", [], data);
+            return formatTreeNodeData(hashData, "", [], data);
           } catch (e) {
             console.error("removeNode", nodes);
           }
@@ -430,7 +430,7 @@ export function removeNode(hashData, data, id) {
           );
           hashData.delete(nodes[0].id); //删除hash记录
           removeHashData(hashData, node.children); //删除子节点的hash记录
-          parentRemoveNode.children = setChildrenPath(
+          parentRemoveNode.children = formatTreeNodeData(
             hashData,
             parentRemoveNode.id,
             parentRemoveNode._path,
@@ -482,7 +482,7 @@ export function updateNode(hashData, data, id, newNode, options) {
       node.text = newNode[textField];
       if (Array.isArray(newNode[options?.childrenField] ?? newNode.children)) {
         //如果有子节点，则更新子节点,设置路径
-        node.children = setChildrenPath(
+        node.children = formatTreeNodeData(
           hashData,
           node.id,
           node._path,
@@ -532,7 +532,7 @@ export function moveInNode(hashData, data, dragNode, dropNode, options) {
       //先添加到停靠节点上第一个，防止子节点过长，而看不到效果
       //再重新设置路径
       dropNode.children.unshift(dragNode);
-      dropNode.children = setChildrenPath(
+      dropNode.children = formatTreeNodeData(
         hashData,
         dropNode.id,
         dropNode._path,
@@ -612,7 +612,7 @@ function moveBeforeOrAfterNode(
         leftData.push(dragNode);
         data = [].concat(leftData, rightData); //组成新数据
         //设置路径
-        data = setChildrenPath(hashData, "", [], data, options);
+        data = formatTreeNodeData(hashData, "", [], data, options);
       } else {
         let parentDropNode = dropNodes[dropNodes.length - 2]; //找到停靠节点的父节点
         //前面的节点
@@ -629,7 +629,7 @@ function moveBeforeOrAfterNode(
         dragNode._path = dropNode._path[dropNode._path.length - 1] + step;
         leftData.push(dragNode);
         parentDropNode.children = [].concat(leftData, rightData);
-        parentDropNode.children = setChildrenPath(
+        parentDropNode.children = formatTreeNodeData(
           hashData,
           parentDropNode.id,
           parentDropNode._path,
@@ -646,13 +646,13 @@ function moveBeforeOrAfterNode(
   return data;
 }
 /**
- * 设置子节点的路径
+ * 格式化子节点数据并且设置的路径及last
  * @param {*} pId 父节点id
  * @param {*} path 父节点路径
  * @param {*} children 子节点
  * @param {*} options 属性选项
  */
-export function setChildrenPath(
+export function formatTreeNodeData(
   hashData = new Map(),
   pId,
   path,
@@ -679,11 +679,11 @@ export function setChildrenPath(
           children[i].text = children[i][textField];
           hashData.set(children[i].id, newPath);
         } catch (e) {
-          console.log("setChildrenPath", e);
+          console.log("formatTreeNodeData", e);
         }
         //设置子节点
         if (Array.isArray(children[i][childrenField])) {
-          children[i].children = setChildrenPath(
+          children[i].children = formatTreeNodeData(
             hashData,
             children[i].id,
             newPath,
@@ -695,7 +695,7 @@ export function setChildrenPath(
       return children;
     }
   } catch (e) {
-    console.error("setChildrenPath", e);
+    console.error("formatTreeNodeData", e);
   }
 
   return [];
@@ -751,7 +751,7 @@ export function appendChildren(hashData, data = [], pId, children, options) {
         oldChildren = oldChildren.concat(newChildren);
         parentNode.children = oldChildren;
         // 设置节点路径
-        parentNode.children = setChildrenPath(
+        parentNode.children = formatTreeNodeData(
           hashData,
           parentNode.id,
           parentNode._path,
@@ -763,7 +763,7 @@ export function appendChildren(hashData, data = [], pId, children, options) {
       } else if (pId === null || pId === "" || pId === undefined) {
         // 根节点,
         hashData = new Map(); //重新设置
-        data = setChildrenPath(hashData, "", [], children, options);
+        data = formatTreeNodeData(hashData, "", [], children, options);
         return data;
       }
     }

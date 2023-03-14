@@ -1,6 +1,6 @@
-//creete by wangzhiyong
+//creete by wangzhiyonglyk
 //date:2016-08-02
-//edit by wangzhiyong 2020-10-18 todo blur事件要改
+//edit by wangzhiyonglyk 2020-10-18 todo blur事件要改
 //desc 将输入框从Input中独立出来
 //2022-01-11 将 tree组件独立出来
 import React, { Component } from "react";

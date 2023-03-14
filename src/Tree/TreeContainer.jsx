@@ -1,5 +1,5 @@
 /*
-create by wangzhiyong 树组件业务容器
+create by wangzhiyonglyk 树组件业务容器
  创建 date:2022-01-06 树组件业务容器,用于tree,treegrid,pivot,操作逻辑是一样的
 date :2022-01-07 修复tregrid单击联动的bug
    2022-01-18 将tree组件全部改为hook
@@ -23,7 +23,7 @@ import {
   findNodeById,
   findLinkNodesByPath,
   getChecked,
-  setChildrenPath,
+  formatTreeNodeData,
 } from "./treeFunc";
 import { myReducer, handlerData, ShareContext } from "./handlerData";
 import config from "./config";
@@ -83,6 +83,7 @@ const getData = function (
   console.log("tree async-fetch", fetchmodel);
 };
 /**
+ *
  * 处理请求后数据
  * @param {*} res 返回的数据
  * @param {*} props 属性
@@ -106,6 +107,24 @@ const handerLoadData = function (res, dataSource, loadSuccess) {
     console.error("handerLoadData", e);
   }
   return [];
+};
+
+/**
+ * 格式化与打平数据
+ * @param {*} gobalData
+ */
+const formatAndFlatData = function (gobalData, data, options) {
+  //格式化，注意了，空数据也可以
+  gobalData.current.data = formatTreeNodeData(
+    gobalData.hashData,
+    "",
+    [],
+    data,
+    options
+  );
+  //扁平化数据
+  gobalData.current.flatData = treeDataToFlatData(gobalData.current.data);
+  return gobalData;
 };
 /*
   注意了默认值不能给对象,否则在useeffect在父组件没传值时每次都认为是最新的
@@ -436,9 +455,7 @@ const TreeContainer = React.forwardRef(function (props, ref) {
           //没有设置异步函数
           dispatch({
             type: "loading",
-            payload: {
-              loadingId: id,
-            },
+            payload: id,
           }); //
           //先保存节点数据
           window.sessionStorage.setItem(
@@ -515,10 +532,14 @@ const TreeContainer = React.forwardRef(function (props, ref) {
       // //当前切割的数据结束下标
       const sliceEndIndex = endIndex + config.bufferScale * visibleDataCount;
       gobalData.current.visibleDataArgs = { sliceBeginIndex, sliceEndIndex };
-      dispatch({
-        type: "showVisibleData",
-        payload: { sliceBeginIndex, sliceEndIndex, gobalData },
-      });
+      //更新数据
+      handlerData(
+        gobalData,
+        {
+          type: "showVisibleData",
+        },
+        dispatch
+      );
     },
     [treecontainerid]
   );
@@ -749,29 +770,18 @@ const TreeContainer = React.forwardRef(function (props, ref) {
     if (url) {
       //第一次初始化 请求数据
       getData(url, httpType, contentType, httpHeaders, params, (res) => {
-        gobalData.current.data = setChildrenPath(
-          gobalData.current.hashData,
-          "",
-          [],
-          handerLoadData(res, dataSource, loadSuccess),
-          options
-        );
-        gobalData.current.flatData = treeDataToFlatData(gobalData.current.data);
+        //格式化，注意了，空数据也可以
+        const data = handerLoadData(res, dataSource, loadSuccess);
+        gobalData = formatAndFlatData(gobalData, data, options);
         onScroll();
       });
     } else {
-      //注意了，空数据也可以
-      gobalData.current.data = setChildrenPath(
-        gobalData.current.hashData,
-        "",
-        [],
-        data,
-        options
-      );
-      gobalData.current.flatData = treeDataToFlatData(gobalData.current.data);
+      //格式化与打平数据
+      gobalData = formatAndFlatData(gobalData, data, options);
+
       onScroll();
     }
-  }, [data, url]);
+  }, [data, url, options]);
 
   /**
    *滚动到指定位置
@@ -783,7 +793,7 @@ const TreeContainer = React.forwardRef(function (props, ref) {
         state.scrollIndex.index > vis.endIndex ||
         state.scrollIndex.index < vis.startIndex
       ) {
-        //不在可见范围内
+        //不在可见范围内,自动调用onscroll事件
         document.getElementById(treecontainerid).scrollTop =
           (state.scrollIndex.index - 1) * rowDefaultHeight;
       }
@@ -856,6 +866,7 @@ const TreeContainer = React.forwardRef(function (props, ref) {
               gobalData.current.flatData.length * rowDefaultHeight,
             position: "absolute",
             width: 1,
+            opacity: 0,
           }}
         ></div>
         <RightMenu ref={menuRef} onClick={onTreeMenuClick}></RightMenu>

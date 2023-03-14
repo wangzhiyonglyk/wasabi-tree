@@ -1,5 +1,5 @@
 /*
- create by wangzhiyong
+ create by wangzhiyonglyk
  date:2016-12-13
  desc:树节点组件
  edit 2020-10-24 勾选还是有缺陷
@@ -92,8 +92,15 @@ function NodeView({ row, nodeEvents }) {
       textwidthReduce += 20;
     }
   }
-  //节点前面箭头图标
-  let height = row.isOpened ? 0 : row._isLast ? 4 : config.rowDefaultHeight;
+
+  // 向下加虚线的高度
+  let height = row.isOpened
+    ? 0
+    : row._isLast
+    ? 4
+    : componentType === "tree"
+    ? config.rowDefaultHeight
+    : config.gridRowDefaultHeight;
 
   let lineControl = [
     // 用于右边加虚线
@@ -107,7 +114,8 @@ function NodeView({ row, nodeEvents }) {
       }}
     ></span>,
   ];
-  let arrowIcon;
+  //节点前面箭头图标
+  let arrowIcon; //折叠箭头
   if (row.isParent) {
     //是父节点才有箭头
     if (row.isOpened && row.arrowUnFoldIcon) {
@@ -227,6 +235,7 @@ function NodeView({ row, nodeEvents }) {
       key={row.pId + "-" + row.id}
       data-id={row.id}
       style={{ display: row.hide ? "none" : "flex" }}
+      disabled={row.disabled}
     >
       {blankControl}
       {/* 折叠节点 */}
@@ -269,15 +278,20 @@ function NodeView({ row, nodeEvents }) {
             onDragStart={onNodeDragStart}
           >
             {/* 没有勾选功能展开时并且有子节点时有虚线 */}
-            <i key="3" className={iconCls + " wasabi-tree-text-icon"}>
-              <span
-                className={
-                  !selectAble && row.isOpened && childrenLength
-                    ? " noCheckhasChildren "
-                    : "  "
-                }
-              ></span>
-            </i>
+            {typeof iconCls === "string" ? (
+              <i key="3" className={iconCls + " wasabi-tree-text-icon"}>
+                <span
+                  className={
+                    !selectAble && row.isOpened && childrenLength
+                      ? " noCheckhasChildren "
+                      : "  "
+                  }
+                ></span>
+              </i>
+            ) : (
+              <div className="wasabi-tree-text-icon">{iconCls}</div>
+            )}
+
             <a href={row.href} className="wasabi-tree-txt">
               {text}
             </a>
@@ -621,9 +635,9 @@ TreeNode.propTypes = {
   title: PropTypes.string, //提示信息
   arrowFoldIcon: PropTypes.node, //折叠图标
   arrowUnFoldIcon: PropTypes.node, //展开图标
-  iconCls: PropTypes.string, //默认图标
-  iconClose: PropTypes.string, //[父节点]关闭图标
-  iconOpen: PropTypes.string, //[父节点]打开图标
+  iconCls: PropTypes.node, //默认图标
+  iconClose: PropTypes.node, //[父节点]关闭图标
+  iconOpen: PropTypes.node, //[父节点]打开图标
   isOpened: PropTypes.bool, //是否处于打开状态
   isChecked: PropTypes.bool, //是否被勾选
   selectAble: PropTypes.bool, //是否允许勾选
@@ -636,6 +650,7 @@ TreeNode.propTypes = {
   dropAble: PropTypes.bool, //是否允许停靠
   href: PropTypes.string, //节点的链接
   hide: PropTypes.bool, //是否隐藏
+  disabled: PropTypes.bool, //是否可以操作
   children: PropTypes.array, //子节点
 
   //这两个树组件内部传的

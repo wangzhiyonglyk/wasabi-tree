@@ -14,7 +14,7 @@ import {
   setOpen,
   appendChildren,
   filter,
-  setChildrenPath,
+  formatTreeNodeData,
   setLinkNodeOpen,
 } from "./treeFunc";
 import config from "./config";
@@ -31,6 +31,9 @@ export function handlerData(gobalData, action, dispatch) {
   const payload = action.payload;
   let isChecked = false;
   switch (action.type) {
+    //滚动更新可显示的数据,不需要加工数据
+    case "showVisibleData":
+      break;
     //勾选
     case "onChecked":
       isChecked = payload.id + "" === payload.checkValue + "";
@@ -148,6 +151,7 @@ export function handlerData(gobalData, action, dispatch) {
     case "clearChecked":
       current.data = clearChecked(current.data);
       break;
+    //勾选所有
     case "checkedAll":
       current.data = checkedAll(current.data);
       break;
@@ -185,7 +189,7 @@ export function handlerData(gobalData, action, dispatch) {
       break;
     //删除所有
     case "removeAll":
-      current.data = nullIcurrent.filterData = null;
+      current.data = current.filterData = null;
       current.hashData = new Map(); //这个要初始化
       break;
     //更新某个，或者某一组
@@ -224,7 +228,7 @@ export function handlerData(gobalData, action, dispatch) {
           )
         : payload.data;
       //设置路径
-      current.data = setChildrenPath(
+      current.data = formatTreeNodeData(
         current.hashData,
         "",
         [],
@@ -290,27 +294,29 @@ export function handlerData(gobalData, action, dispatch) {
 /******************下面是reduce的代码******************/
 /**
  * 处理可见数据 保证在滚动过程中只切割，不处理数据加工
- * @param {*} current 全局缓存的数据
+ * @param {*} gobalDataCurrent 全局缓存的数据
  * @returns
  */
-function getVisibleData(current) {
+function getVisibleData(gobalDataCurrent) {
   let visibleData = [];
   try {
-    if (current.filterData) {
+    if (gobalDataCurrent.filterData) {
       // 有新的过滤条件
       //有旧的筛选，切割，得到可见数据
-      visibleData = current.filterData.slice(
-        current.visibleDataArgs.sliceBeginIndex,
-        current.visibleDataArgs.sliceEndIndex
+      visibleData = gobalDataCurrent.filterData.slice(
+        gobalDataCurrent.visibleDataArgs.sliceBeginIndex,
+        gobalDataCurrent.visibleDataArgs.sliceEndIndex
       );
     } else {
       //切割，得到可见数据
-      visibleData = current.flatData.slice(
-        current.visibleDataArgs.sliceBeginIndex,
-        current.visibleDataArgs.sliceEndIndex
+      visibleData = gobalDataCurrent.flatData.slice(
+        gobalDataCurrent.visibleDataArgs.sliceBeginIndex,
+        gobalDataCurrent.visibleDataArgs.sliceEndIndex
       );
     }
-  } catch (e) {}
+  } catch (e) {
+    console.log("getVisibleData", e);
+  }
   return visibleData;
 }
 
@@ -364,13 +370,12 @@ export function myReducer(state, action) {
     }
     preAction = action; // 防止重复执行
     const payload = action.payload;
-    const current = payload?.gobalData?.current;
     switch (action.type) {
       //加载
       case "loading":
         preState = {
           ...state,
-          loadingId: payload.loadingId,
+          loadingId: payload,
         };
         break;
       // 单击，双击
@@ -381,15 +386,7 @@ export function myReducer(state, action) {
           clickId: payload,
         };
         break;
-      /**
-       *滚动事件
-       */
-      case "showVisibleData":
-        preState = {
-          ...state,
-          visibleData: getVisibleData(current),
-        };
-        break;
+
       /** 
             设置某个节点选中
             */
@@ -400,7 +397,7 @@ export function myReducer(state, action) {
           clickId: payload.id, //设置选中
           //判断是否要滚动
           scrollIndex: {
-            index: current.flatData.findIndex((item) => {
+            index: payload.gobalData.current.flatData.findIndex((item) => {
               return item.id === payload.id;
             }),
           }, // 设为对象，方便判断字段更新了
@@ -412,7 +409,7 @@ export function myReducer(state, action) {
       case "update":
         preState = {
           ...state,
-          visibleData: getVisibleData(current),
+          visibleData: getVisibleData(payload.current),
         };
         break;
       default:
