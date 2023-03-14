@@ -189,7 +189,7 @@ export function handlerData(gobalData, action, dispatch) {
       break;
     //删除所有
     case "removeAll":
-      current.data = current.filterData = null;
+      current.data = current.flatData = current.filterData = null;
       current.hashData = new Map(); //这个要初始化
       break;
     //更新某个，或者某一组
@@ -284,7 +284,7 @@ export function handlerData(gobalData, action, dispatch) {
   if (dispatch) {
     clearTimeout(current.asyncAction);
     current.asyncAction = setTimeout(() => {
-      dispatch({ type: "update", payload: { gobalData } });
+      dispatch({ type: "update", payload: gobalData });
     }, 10);
   }
 }
@@ -294,24 +294,24 @@ export function handlerData(gobalData, action, dispatch) {
 /******************下面是reduce的代码******************/
 /**
  * 处理可见数据 保证在滚动过程中只切割，不处理数据加工
- * @param {*} gobalDataCurrent 全局缓存的数据
+ * @param {*} gobalDataRef 全局缓存的数据
  * @returns
  */
-function getVisibleData(gobalDataCurrent) {
+function getVisibleData(gobalDataRef) {
   let visibleData = [];
   try {
-    if (gobalDataCurrent.filterData) {
+    if (gobalDataRef?.filterData) {
       // 有新的过滤条件
       //有旧的筛选，切割，得到可见数据
-      visibleData = gobalDataCurrent.filterData.slice(
-        gobalDataCurrent.visibleDataArgs.sliceBeginIndex,
-        gobalDataCurrent.visibleDataArgs.sliceEndIndex
+      visibleData = gobalDataRef?.filterData?.slice(
+        gobalDataRef.visibleDataArgs.sliceBeginIndex,
+        gobalDataRef.visibleDataArgs.sliceEndIndex
       );
     } else {
       //切割，得到可见数据
-      visibleData = gobalDataCurrent.flatData.slice(
-        gobalDataCurrent.visibleDataArgs.sliceBeginIndex,
-        gobalDataCurrent.visibleDataArgs.sliceEndIndex
+      visibleData = gobalDataRef?.flatData?.slice(
+        gobalDataRef.visibleDataArgs.sliceBeginIndex,
+        gobalDataRef.visibleDataArgs.sliceEndIndex
       );
     }
   } catch (e) {

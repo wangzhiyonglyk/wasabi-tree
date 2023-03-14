@@ -722,7 +722,7 @@ export function filter(flatData, filterValue = "") {
       }
     }
   } catch (e) {
-    console.log("e", e);
+    console.log("filter", e);
   }
   return [];
 }

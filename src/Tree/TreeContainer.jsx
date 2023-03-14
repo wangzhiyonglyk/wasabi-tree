@@ -111,20 +111,20 @@ const handerLoadData = function (res, dataSource, loadSuccess) {
 
 /**
  * 格式化与打平数据
- * @param {*} gobalData
+ * @param {*} gobalDataRef
  */
-const formatAndFlatData = function (gobalData, data, options) {
+const formatAndFlatData = function (gobalDataRef, data, options) {
   //格式化，注意了，空数据也可以
-  gobalData.current.data = formatTreeNodeData(
-    gobalData.hashData,
+  gobalDataRef.data = formatTreeNodeData(
+    gobalDataRef.hashData,
     "",
     [],
     data,
     options
   );
   //扁平化数据
-  gobalData.current.flatData = treeDataToFlatData(gobalData.current.data);
-  return gobalData;
+  gobalDataRef.flatData = treeDataToFlatData(gobalDataRef.data);
+  return gobalDataRef;
 };
 /*
   注意了默认值不能给对象,否则在useeffect在父组件没传值时每次都认为是最新的
@@ -772,12 +772,12 @@ const TreeContainer = React.forwardRef(function (props, ref) {
       getData(url, httpType, contentType, httpHeaders, params, (res) => {
         //格式化，注意了，空数据也可以
         const data = handerLoadData(res, dataSource, loadSuccess);
-        gobalData = formatAndFlatData(gobalData, data, options);
+        gobalData.current = formatAndFlatData(gobalData.current, data, options);
         onScroll();
       });
     } else {
       //格式化与打平数据
-      gobalData = formatAndFlatData(gobalData, data, options);
+      gobalData.current = formatAndFlatData(gobalData.current, data, options);
 
       onScroll();
     }
@@ -805,6 +805,8 @@ const TreeContainer = React.forwardRef(function (props, ref) {
   const treeProps = {
     treeid,
     componentType,
+    clickId: state.clickId,
+    loadingId: state.loadingId,
     dottedAble,
     selectAble,
     checkStyle,

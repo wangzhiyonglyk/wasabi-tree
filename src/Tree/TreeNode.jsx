@@ -150,10 +150,9 @@ function NodeView({ row, nodeEvents }) {
       arrowIcon = (
         <i
           className={
-            (clickId === row.id ? " selected " : "") +
-            (row.isOpened
+            row.isOpened
               ? ` wasabi-tree-li-icon  ${icon}-down `
-              : ` wasabi-tree-li-icon  ${icon}-right`)
+              : ` wasabi-tree-li-icon  ${icon}-right`
           }
           onClick={row.isParent ? onExpand : null}
         >
@@ -172,14 +171,7 @@ function NodeView({ row, nodeEvents }) {
   } else {
     //不是父节点，占位符
     arrowIcon = (
-      <i
-        className={
-          (clickId === row.id ? " selected " : "") +
-          " wasabi-tree-li-icon-placeholder"
-        }
-      >
-        {lineControl}
-      </i>
+      <i className={" wasabi-tree-li-icon-placeholder"}>{lineControl}</i>
     );
   }
 
@@ -190,10 +182,7 @@ function NodeView({ row, nodeEvents }) {
         half={row.half}
         name={"node" + row.id}
         /**有子节点有向下的虚线**/
-        className={
-          (clickId === row.id ? " selected " : "") +
-          (row.isOpened && childrenLength > 0 ? " hasChildren " : "  ")
-        }
+        className={row.isOpened && childrenLength > 0 ? " hasChildren " : "  "}
         value={row.isChecked ? row.id : ""}
         data={[{ value: row.id, text: "" }]}
         onSelect={onChecked}
@@ -206,10 +195,7 @@ function NodeView({ row, nodeEvents }) {
         half={row.half}
         name={"node" + row.id}
         /**有子节点并且展开才有向下的虚线**/
-        className={
-          (clickId === row.id ? " selected " : "") +
-          (row.isOpened && childrenLength > 0 ? " hasChildren " : "  ")
-        }
+        className={row.isOpened && childrenLength > 0 ? " hasChildren " : "  "}
         value={row.isChecked ? row.id : ""}
         data={[{ value: row.id, text: "" }]}
         onSelect={onChecked}
