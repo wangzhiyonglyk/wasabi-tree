@@ -18,8 +18,8 @@ import CheckBox from "../CheckBox";
 import Radio from "../Radio";
 import Text from "../Text";
 import { uuid } from "../libs/func";
-import config from "./config";
 import { ShareContext } from "./handlerData.js";
+import config from "./config";
 function NodeView({ row, nodeEvents }) {
   const { treeProps } = useContext(ShareContext);
   const { clickId, loadingId, checkStyle, textFormatter, componentType } =
@@ -78,29 +78,27 @@ function NodeView({ row, nodeEvents }) {
       iconCls = row.iconClose ? row.iconClose : row.iconCls; ///没有则用默认图标
     }
   }
-  if (loadingId === row.id) {
-    //正在异步加载
-    iconCls = "icon-loading tree-loading";
-  }
+
   let childrenLength = row.isOpened === false ? 0 : row?.children?.length || 0; //子节点个数
   let textwidthReduce = 20; //文本字段减少的宽度
+  //因为打平的问题，计算出向下的虚线的高度
+  let lineHeight =
+    (row._openDescendant ?? 0) * config.rowDefaultHeight +
+    (row._isLast ? 5 : config.rowDefaultHeight);
   //空白位，表示节点层级
   let blankControl = [];
   if (row._path.length > 1) {
     for (let i = 1; i < row._path.length; i++) {
-      blankControl.push(<span key={i} style={{ width: 20 }}></span>);
+      blankControl.push(
+        <span
+          key={i}
+          className="wasabi-tree-reduce"
+          style={{ width: 20 }}
+        ></span>
+      );
       textwidthReduce += 20;
     }
   }
-
-  // 向下加虚线的高度
-  let height = row.isOpened
-    ? 0
-    : row._isLast
-    ? 4
-    : componentType === "tree"
-    ? config.rowDefaultHeight
-    : config.gridRowDefaultHeight;
 
   let lineControl = [
     // 用于右边加虚线
@@ -109,64 +107,59 @@ function NodeView({ row, nodeEvents }) {
     <span
       key="2"
       className="wasabi-tree-li-icon-afterBelow"
-      style={{
-        height: height,
-      }}
+      style={{ height: lineHeight }}
     ></span>,
   ];
   //节点前面箭头图标
   let arrowIcon; //折叠箭头
   if (row.isParent) {
     //是父节点才有箭头
-    if (row.isOpened && row.arrowUnFoldIcon) {
-      // 自定义展开图标
-      arrowIcon = (
-        <div
-          className={"wasabi-tree-li-icon"}
-          style={{ display: "inline-block" }}
-          onClick={row.isParent ? onExpand : null}
-        >
-          {row.arrowUnFoldIcon}
-          {lineControl}
-        </div>
-      );
-    }
+    if (loadingId === row.id) {
+      //正在异步加载
+      arrowIcon = <i className="icon-loading tree-loading"></i>;
+    } else {
+      if (row.isOpened && row.arrowUnFoldIcon) {
+        // 自定义展开图标
+        arrowIcon = (
+          <div
+            className={"wasabi-tree-li-icon"}
+            style={{ display: "inline-block" }}
+            onClick={row.isParent ? onExpand : null}
+          >
+            {row.arrowUnFoldIcon}
+            {lineControl}
+          </div>
+        );
+      }
 
-    if (!row.isOpened && row.arrowFoldIcon) {
-      // 自定义折叠图标
-      arrowIcon = (
-        <div
-          className={"wasabi-tree-li-icon"}
-          style={{ display: "inline-block" }}
-          onClick={row.isParent ? onExpand : null}
-        >
-          {row.arrowFoldIcon}
-          {lineControl}
-        </div>
-      );
-    }
-    if (!arrowIcon) {
-      let icon = componentType === "tree" ? "icon-caret" : "icon-arrow";
-      arrowIcon = (
-        <i
-          className={
-            row.isOpened
-              ? ` wasabi-tree-li-icon  ${icon}-down `
-              : ` wasabi-tree-li-icon  ${icon}-right`
-          }
-          onClick={row.isParent ? onExpand : null}
-        >
-          {/* span用于右边加虚线*/}
-          <span className="wasabi-tree-li-icon-beforeRight"></span>
-          {/* 用于向下加虚线 */}
-          <span
-            className="wasabi-tree-li-icon-afterBelow"
-            style={{
-              height: height,
-            }}
-          ></span>
-        </i>
-      );
+      if (!row.isOpened && row.arrowFoldIcon) {
+        // 自定义折叠图标
+        arrowIcon = (
+          <div
+            className={"wasabi-tree-li-icon"}
+            style={{ display: "inline-block" }}
+            onClick={row.isParent ? onExpand : null}
+          >
+            {row.arrowFoldIcon}
+            {lineControl}
+          </div>
+        );
+      }
+      if (!arrowIcon) {
+        let icon = componentType === "tree" ? "icon-caret" : "icon-arrow";
+        arrowIcon = (
+          <i
+            className={
+              row.isOpened
+                ? ` wasabi-tree-li-icon  ${icon}-down `
+                : ` wasabi-tree-li-icon  ${icon}-right`
+            }
+            onClick={row.isParent ? onExpand : null}
+          >
+            {lineControl}
+          </i>
+        );
+      }
     }
   } else {
     //不是父节点，占位符

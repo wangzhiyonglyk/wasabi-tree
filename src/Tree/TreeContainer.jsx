@@ -18,13 +18,8 @@ import React, {
 } from "react";
 import PropTypes from "prop-types";
 import api from "wasabi-api";
-import { uuid, clone, treeDataToFlatData } from "../libs/func";
-import {
-  findNodeById,
-  findLinkNodesByPath,
-  getChecked,
-  formatTreeNodeData,
-} from "./treeFunc";
+import { uuid, clone } from "../libs/func";
+import { findNodeById, findLinkNodesByPath, getChecked } from "./treeFunc";
 import { myReducer, handlerData, ShareContext } from "./handlerData";
 import config from "./config";
 import TreeView from "./TreeView";
@@ -109,23 +104,6 @@ const handerLoadData = function (res, dataSource, loadSuccess) {
   return [];
 };
 
-/**
- * 格式化与打平数据
- * @param {*} gobalDataRef
- */
-const formatAndFlatData = function (gobalDataRef, data, options) {
-  //格式化，注意了，空数据也可以
-  gobalDataRef.data = formatTreeNodeData(
-    gobalDataRef.hashData,
-    "",
-    [],
-    data,
-    options
-  );
-  //扁平化数据
-  gobalDataRef.flatData = treeDataToFlatData(gobalDataRef.data);
-  return gobalDataRef;
-};
 /*
   注意了默认值不能给对象,否则在useeffect在父组件没传值时每次都认为是最新的
   */
@@ -215,6 +193,25 @@ const TreeContainer = React.forwardRef(function (props, ref) {
     hashData: new Map(), //hash路径数据
   });
 
+  /**
+   * 初始化化
+   */
+  const handlerInit = useCallback(
+    (newData) => {
+      document.getElementById(treecontainerid).scrollTop = 0; // 回归到顶部
+      //处理数据
+      handlerData(
+        gobalData,
+        {
+          type: "updateAll",
+          payload: { options, data: newData, containerid: treecontainerid },
+        },
+        dispatch
+      ); //显示可见数据
+      onScroll(); //重新渲染
+    },
+    [treecontainerid, options, onScroll, dispatch]
+  );
   /**
    * 右键菜单事件
    * @param {*} id
@@ -502,13 +499,6 @@ const TreeContainer = React.forwardRef(function (props, ref) {
      */
   const showVisibleData = useCallback(
     (startIndex, endIndex, visibleDataCount) => {
-      //这里的滚动不能单独弄成函数调整，原因不清楚
-      // treeScrollTop(
-      //   treeid,
-      //   startIndex,
-      //   visibleDataCount,
-      //   rowDefaultHeight
-      // );
       let startOffset;
       if (startIndex >= 1) {
         // 减去上部预留的高度
@@ -522,9 +512,10 @@ const TreeContainer = React.forwardRef(function (props, ref) {
       } else {
         startOffset = 0;
       }
-      document.getElementById(
-        treeid
-      ).style.transform = `translate3d(0,${startOffset}px,0)`;
+      let treeDom = document.getElementById(treeid);
+      if (treeDom) {
+        treeDom.style.transform = `translate3d(0,${startOffset}px,0)`;
+      }
 
       // 当前切割的数据开始下标
       let sliceBeginIndex = startIndex - config.bufferScale * visibleDataCount;
@@ -632,6 +623,26 @@ const TreeContainer = React.forwardRef(function (props, ref) {
     setLinkOpen(id) {
       handlerData(gobalData, { type: "setLinkOpen", payload: id }, dispatch);
     },
+    /**
+     * 设置某个节点正在加载状态
+     * @param {*} id
+     */
+    setLoading(id) {
+      dispatch({
+        type: "loading",
+        payload: id,
+      }); //
+    },
+
+    /**
+     * 清除加载状态
+     */
+    clearLoading() {
+      dispatch({
+        type: "loading",
+        payload: null,
+      }); //
+    },
     /** 
     移除某个／多个节点[数组]
     
@@ -701,17 +712,7 @@ const TreeContainer = React.forwardRef(function (props, ref) {
     更新所有
     */
     updateAll(newData) {
-      document.getElementById(treecontainerid).scrollTop = 0; // 回归到顶部
-      //处理数据
-      handlerData(
-        gobalData,
-        {
-          type: "updateAll",
-          payload: { options, data: newData, containerid: treecontainerid },
-        },
-        dispatch
-      ); //显示可见数据
-      onScroll(); //重新渲染
+      handlerInit(newData);
     },
     /**
      * 移动到节点内部
@@ -771,15 +772,14 @@ const TreeContainer = React.forwardRef(function (props, ref) {
       //第一次初始化 请求数据
       getData(url, httpType, contentType, httpHeaders, params, (res) => {
         //格式化，注意了，空数据也可以
-        const data = handerLoadData(res, dataSource, loadSuccess);
-        gobalData.current = formatAndFlatData(gobalData.current, data, options);
-        onScroll();
+        const newData = handerLoadData(res, dataSource, loadSuccess);
+
+        handlerInit(newData);
       });
     } else {
       //格式化与打平数据
-      gobalData.current = formatAndFlatData(gobalData.current, data, options);
 
-      onScroll();
+      handlerInit(data);
     }
   }, [data, url, options]);
 

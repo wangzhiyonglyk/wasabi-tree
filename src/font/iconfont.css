@@ -1,16 +1,20 @@
 @font-face {
   font-family: "iconfont"; /* Project id 3131694 */
-  src: url("iconfont.woff?t=1678340507062") format("woff"),
-    url("iconfont.ttf?t=1678340507062") format("truetype"),
-    url("iconfont.svg?t=1678340507062#iconfont") format("svg");
+  src: url('iconfont.woff?t=1678863067742') format('woff'),
+       url('iconfont.ttf?t=1678863067742') format('truetype'),
+       url('iconfont.svg?t=1678863067742#iconfont') format('svg');
 }
 
 .iconfont {
-  font-family: "iconfont-tree" !important;
+  font-family: "iconfont" !important;
   font-size: 16px;
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-loading:before {
+  content: "\ebfe";
 }
 
 .icon-text:before {
@@ -52,3 +56,4 @@
 .icon-delete:before {
   content: "\eb0c";
 }
+

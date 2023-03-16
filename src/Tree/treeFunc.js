@@ -1,6 +1,7 @@
 //树的公共方法    edit 2022-03-31
 //edit by 2022-07-22 完善
 //edit by 2023-03-10 修复拖动的bug
+//edit by 2023-03-16 优化算法
 /** 
 通过id找到节点路径
 * @param {*} hashData hash表
@@ -8,9 +9,122 @@
 * @returns
 */
 import { toTreeData } from "../libs/func";
+
+/**
+ * 格式化子节点数据并且设置的路径
+ * @param {*} pId 父节点id
+ * @param {*} path 父节点路径
+ * @param {*} childrenData 子节点
+ * @param {*} options 属性选项
+ */
+export function formatTreeNodeData(
+  hashData = new Map(),
+  pId,
+  path,
+  childrenData,
+  options
+) {
+  const idField = options?.idField ?? "id";
+  const parentField = options?.parentField ?? "pId";
+  const textField = options?.textField ?? "text";
+  const childrenField = options?.childrenField ?? "children";
+  try {
+    if (options?.isSimpleData) {
+      //并且是简单数据格式,需要转树型结构
+      childrenData = toTreeData(
+        childrenData,
+        idField,
+        parentField,
+        textField,
+        childrenField
+      );
+    }
+    //设置节点路径与hash
+    childrenData = setNodePathAndHash(
+      hashData,
+      pId,
+      path,
+      childrenData,
+      options
+    );
+  } catch (e) {
+    console.log("formatTreeNodeData", e);
+  }
+
+  return childrenData;
+}
+/**
+ * 设置子节点的路径及hash
+ * @param {*} pId 父节点id
+ * @param {*} path 父节点路径
+ * @param {*} childrenData 子节点
+ * @param {*} options 属性选项
+ */
+function setNodePathAndHash(
+  hashData = new Map(),
+  pId,
+  path,
+  childrenData,
+  options
+) {
+  try {
+    if (Array.isArray(childrenData)) {
+      for (let i = 0; i < childrenData.length; i++) {
+        let item = childrenData[i];
+        let newPath = [...path, i];
+        try {
+          item._path = newPath;
+          item.pId = pId;
+          item.id = item[options.idField];
+          item.text = item[options.textField];
+          hashData.set(childrenData[i].id, newPath);
+        } catch (e) {
+          console.log("formatTreeNodeData", e);
+        }
+        //设置子节点
+        if (Array.isArray(item[options.childrenField])) {
+          item.children = setNodePathAndHash(
+            hashData,
+            item.id,
+            newPath,
+            item[options.childrenField],
+            options
+          );
+        }
+      }
+      return childrenData;
+    }
+  } catch (e) {
+    console.error("formatTreeNodeData", e);
+  }
+  return childrenData;
+}
+/** 
+通过id找到节点 
+@param {*} hashData
+ @param {*} data
+  @param {*} id id
+  */
+export function findNodeById(hashData, data, id) {
+  try {
+    if (Array.isArray(data)) {
+      return findNodeByPath(data, findPathById(hashData, id));
+    }
+  } catch (e) {
+    console.error("findNodeById", e);
+  }
+  return null;
+}
+/**
+ * 根据id查询节点路径
+ * @param {*} hashData
+ * @param {*} id
+ * @returns
+ */
 function findPathById(hashData, id) {
   return hashData && hashData.get(id);
 }
+
 /** 
 要树结构数据中找到节点
 * @param {*} data
@@ -35,22 +149,7 @@ function findNodeByPath(data, path) {
 
   return node;
 }
-/** 
-通过id找到节点 
-@param {*} hashData
- @param {*} data
-  @param {*} id id
-  */
-export function findNodeById(hashData, data, id) {
-  try {
-    if (Array.isArray(data)) {
-      return findNodeByPath(data, findPathById(hashData, id));
-    }
-  } catch (e) {
-    console.error("findNodeById", e);
-  }
-  return null;
-}
+
 /**
  * 找树结构数据中到节点链表
  * @param {*} data 数据
@@ -405,7 +504,7 @@ export function renameNode(hashData, data, id, newText, options) {
  * @param {*} id
  * @returns
  */
-export function removeNode(hashData, data, id) {
+export function removeNode(hashData, data, id, options) {
   try {
     if (Array.isArray(data)) {
       const node = findNodeById(hashData, data, id);
@@ -416,7 +515,7 @@ export function removeNode(hashData, data, id) {
           try {
             data.splice(nodes[0]._path[0], 1); //删除
             hashData.delete(nodes[0].id); //删除hash记录
-            return formatTreeNodeData(hashData, "", [], data);
+            return formatTreeNodeData(hashData, "", [], data, options);
           } catch (e) {
             console.error("removeNode", nodes);
           }
@@ -434,7 +533,8 @@ export function removeNode(hashData, data, id) {
             hashData,
             parentRemoveNode.id,
             parentRemoveNode._path,
-            parentRemoveNode.children
+            parentRemoveNode.children,
+            options
           );
         }
         return data;
@@ -523,13 +623,14 @@ export function moveInNode(hashData, data, dragNode, dropNode, options) {
     ) {
       /**
        * 1. 停靠的节点不能是移动节点的父节点，相当于没移动
-       * 2. 停靠的节点不能是移动节点的子节点，否则产生死循环
+       * 2. 停靠的节点不能是移动节点的子孙节点，否则产生死循环
        */
 
       //移动节点的父节点要删除节点，并且要更改子节点的路径
-      data = removeNode(hashData, data, dragNode.id);
+      data = removeNode(hashData, data, dragNode.id, options);
       dropNode.isOpened = true; //停靠节点展开
-      //先添加到停靠节点上第一个，防止子节点过长，而看不到效果
+      dragNode.pId = dropNode.id; //设置父节点
+      //添加到停靠节点上第一个，防止子节点过长，而看不到效果
       //再重新设置路径
       dropNode.children.unshift(dragNode);
       dropNode.children = formatTreeNodeData(
@@ -541,7 +642,7 @@ export function moveInNode(hashData, data, dragNode, dropNode, options) {
       );
     } else {
       console.log(
-        "停靠的节点不能是移动节点的父节点或者停靠的节点不能是移动节点的子节点"
+        "停靠的节点不能是移动节点的父节点或者停靠的节点不能是移动节点的子孙节点"
       );
     }
   } catch (e) {
@@ -599,9 +700,9 @@ function moveBeforeOrAfterNode(
       dropNodes.filter((node) => node.id === dragNode.id).length === 0
     ) {
       /**
-       *  停靠的节点不能是移动节点的子节点，否则产生死循环
+       *  停靠的节点不能是移动节点的子孙节点，否则产生死循环
        */
-      data = removeNode(hashData, data, dragNode.id);
+      data = removeNode(hashData, data, dragNode.id, options);
       if (dropNodes.length === 1) {
         //第一层节点,
 
@@ -638,67 +739,12 @@ function moveBeforeOrAfterNode(
         );
       }
     } else {
-      console.log("停靠的节点不能是移动节点的子节点");
+      console.log("停靠的节点不能是移动节点的子孙节点");
     }
   } catch (e) {
     console.error("moveBeforeOrAfterNode", e);
   }
   return data;
-}
-/**
- * 格式化子节点数据并且设置的路径及last
- * @param {*} pId 父节点id
- * @param {*} path 父节点路径
- * @param {*} children 子节点
- * @param {*} options 属性选项
- */
-export function formatTreeNodeData(
-  hashData = new Map(),
-  pId,
-  path,
-  children,
-  options
-) {
-  const idField = options?.idField ?? "id";
-  const parentField = options?.parentField ?? "pId";
-  const textField = options?.textField ?? "text";
-  const childrenField = options?.childrenField ?? "children";
-  if (!pId && options?.isSimpleData) {
-    //如果没有父节点，说明全部更新
-    children = toTreeData(children, idField, parentField, textField);
-  }
-  try {
-    if (Array.isArray(children)) {
-      for (let i = 0; i < children.length; i++) {
-        let newPath = [...path, i];
-        try {
-          children[i]._path = newPath;
-          children[i].pId = pId;
-          children[i]._isLast = i === children.length - 1; //是否是最后一个节点用于画线
-          children[i].id = children[i][idField];
-          children[i].text = children[i][textField];
-          hashData.set(children[i].id, newPath);
-        } catch (e) {
-          console.log("formatTreeNodeData", e);
-        }
-        //设置子节点
-        if (Array.isArray(children[i][childrenField])) {
-          children[i].children = formatTreeNodeData(
-            hashData,
-            children[i].id,
-            newPath,
-            children[i][childrenField],
-            options
-          );
-        }
-      }
-      return children;
-    }
-  } catch (e) {
-    console.error("formatTreeNodeData", e);
-  }
-
-  return [];
 }
 
 /**
@@ -770,4 +816,44 @@ export function appendChildren(hashData, data = [], pId, children, options) {
   } catch (e) {
     console.log("append", e);
   }
+}
+
+/**
+ * 将树型结构的数据扁平化
+ * @param {*} data 数据
+ * @returns
+ */
+export function treeDataToFlatData(data, result = []) {
+  result = result ?? [];
+  if (Array.isArray(data)) {
+    for (let i = 0; i < data.length; i++) {
+      let item = data[i];
+      item._isLast = i === data.length - 1 ? true : false; //目的为了画向下的虚线最一个
+      item._openDescendant = getOpenDescendantNum(item);
+      result.push(item);
+      if (item.children && item.children.length > 0 && item.isOpened === true) {
+        treeDataToFlatData(item.children, result); //将结果传递下去，这样就不用利用返回值来合并
+      }
+    }
+  }
+  return result;
+}
+
+/**
+ * 得到节点展开后的子孙节点个数
+ * @param {*} node
+ * @returns
+ */
+function getOpenDescendantNum(node) {
+  let _openDescendant = 0;
+  if (node?.children?.length > 0 && node.isOpened === true) {
+    _openDescendant += node?.children?.length;
+    for (let i = 0; i < node.children.length; i++) {
+      let item = node.children[i];
+      if (item?.children?.length > 0 && item.isOpened === true) {
+        _openDescendant += getOpenDescendantNum(item); //将结果传递下去，这样就不用利用返回值来合并
+      }
+    }
+  }
+  return _openDescendant;
 }

@@ -59,7 +59,7 @@ function Demo(props) {
 | `dataSource`   | string                             | 有 url 参数时的返回的数据源中哪个属性作为数据源,可以分层比如`data.list `                                      | data                        |
 | headers        | array                              | 请求时传的表头参数                                                                                            | null                        |
 | data           | array                              | 父组件传的固定数据                                                                                            | null                        |
-| `isSimpleData` | bool                               | `是否使用简单的数据格式：只针对整个树的数据源,子节点异步查询不起作用。目的是在前端将扁平化数据转成树结构`     | false                       |
+| `isSimpleData` | bool                               | `是否使用简单的数据格式：。目的是在前端将扁平化数据转成树状结构`                                              | false                       |
 | dottedAble     | bool                               | 是否有虚线                                                                                                    | true                        |
 | selectAble     | bool                               | 是否允许勾选                                                                                                  | false                       |
 | checkStyle     | oneOf(["checkbox", "radio", func]) | 单选还是多选,可以通过函数返回自定义组件，`func(row){retrun node;}` 注意： `宽度20px,高度 30px`                | checkbox                    |
@@ -155,10 +155,10 @@ function Demo(props) {
 3. 扁平化后切割数据，得到渲染数据:`visibleData`
 4. 监听容器的滚动事件，得到起始下标，重新计算要渲染的数据,并且进行了节流
 
-##### 3.1.2 扁平化数据与格式化数据时优化算法
+##### 3.1.2 树型结构与格式化，扁平化数据时优化算法
 
-1. 递归遍历过程中不使用浅复制，不创建新的对象
-2. toTreeData 转成树结构数据时，利用 concat 最小代价浅复制原始数据又不影响原始数据
+1. 在 toTreeData 函数中将后端二维表格数据转树型结构时，利用 hash,并且不破坏原始数据结构来优化算法。
+2. formatTreeNodeData【格式化】与 treeDataToFlatData【扁平化】时：循环与递归过程中不使用浅复制，不创建新的对象，不删除， 只是单纯的 for
 
 ##### 3.1.3 格式化数据时，标准化节点数据结构：`id,pId,text,children`
 
@@ -169,7 +169,7 @@ function Demo(props) {
 1. 对传递的数据先进行预处理，设置节点\_path 属性，保存节点在树结构的路径
 2. 能够通过\_path 快速找到节点，及祖先节点，快速操作树节点的勾选，增，删，修改，移动
 3. 通过\_path 字段来确实节点前面空白占位宽度大小，扁平化后依然能显示层级关系
-4. 通过`hashData`中的\_path，方便调用 Tree 组件父级通过 id 快速找到节点 来操作树节点的勾选，增，删，修改，移动等
+4. 通过`hashData`中的\_path，方便通过 id 快速找到节点 方便上层组件
 
 ##### 3.1.5 除可见数据等少数状态外，整个树结构的数据不参与 State
 
@@ -195,19 +195,28 @@ function Demo(props) {
 #### 3.1 十万数据量的渲染情况
 
 渲染情况不完全准确：
-
-2.2.1 格式化数据平均时长：`约108ms`
-2.2.2 扁平化数据平均时长：`约25ms`
-2.2.3 首屏时间:`约0.8s`<sup style="color:#840909">需要继续优化</sup>
-2.2.4 删除节点：`约73ms`
-2.2.4 移动节点：`约126ms`
+2.2.1 isSimpleData 为 true 格式化数据平均时长：约`155ms`,
+2.2.1 树状结格式化数据平均时长：约`33ms`
+2.2.2 扁平化数据平均时长：约`25ms`
+2.2.3 首屏时间:约`0.8s`
+2.2.4 删除节点：约`73ms`
+2.2.4 移动节点：约`126ms`
 
 ### 4 树组件的设计思路
 
 #### 4.1 树的关系图
 
-```Mermaid
-classDiagram
+```plantuml
+@startuml
+ class func{
+       公共函数，扁平数据转树状结构
+    }
+    class treeFunc{
+       数据加工
+    }
+    class handlerData {
+            reducer计算
+    }
     class TreeContainer{
     树组件的容器，负责数据处理
     }
@@ -231,48 +240,53 @@ classDiagram
         文本框
     }
 
-
+func-->treeFunc:【isSimpleData为true时toTreeData】扁平数据转树结构
+treeFunc-->handlerData:操作数据:加工数据，并格式化，扁平化
+handlerData-->TreeContainer:响应树的事件，得到新的状态
     TreeContainer-->TreeView:树组件View
     TreeView-->TreeNode:树节点
     TreeNode-->NodeView:树节点View
     NodeView-->CheckBox:复选框
       NodeView-->Radio:单选框
       NodeView-->Text:文本框
-    getVisibleCount-->TreeContainer:容器高度及可见节点数
-    getData-->TreeContainer:url请求数据
-    formatTreeNodeData-->TreeContainer:格式化数据,并且增加_path,_isLast,
-    showVisibleData-->TreeContainer:得到可见区域数据
-    func-->formatTreeNodeData:【isSimpleData为true时toTreeData】转树结构
-    func-->showVisibleData:[treeDataToFlatData方法]扁平化数据
 
+@enduml
 ```
 
 #### 4.2 树的数据流图示
 
-```plantuml
-@startuml
-父组件-->TreeContainer:将父组件传递的ata
-父组件-->TreeContainer:通过父组件传递的url加载后的data
-formatTreeNodeData数据预加工类-->TreeContainer:遍历data，生成id，pId,text,children必需属性，追加_path属性，isLast属性，方便后期各类树操作
-getVisibleCount函数-->TreeContainer:计算树容器的高度visibleHeight，得到可视区节点个数visibleCount
-handlerVisibleData处理数据-->TreeContainer:通过预处理后的data,visibleCount等参数得扁平化后数据flatData,filterData,visibleData等
-@enduml
-```
+##### 4.2.1 状态数据流
 
 ```plantuml
 @startuml
-TreeContainter-->handlerData:，传递action,与dispatch
-handlerData-->TreeContainter:利用data:生成新的state(visibleData,loadingId,clickId,scrollIndex)
-handlerData-->treeFunc:调用api,处理数据
-treeFunc-->handlerData:返回新的data
+父组件-->TreeContainer:将父组件传递的【data】
+父组件-->TreeContainer:通过父组件传递的url加载后的【data】
+父组件-->TreeContainer:其他控制权限的props
+getVisibleCount-->TreeContainer:计算可见高度visibleHeight，scrollTop：滚动位置，得到可视区节点个数及下标
+TreeContainer-->handlerData:传递gobalData,action,payload用于加工数据
+handlerData-->TreeContainer:加工数据，【reduce】计算返回新的state
 @enduml
 ```
 
+##### 4.2.1 data 加工流程
+
 ```plantuml
 @startuml
-TreeContainer-->TreeView:传递visibleData,props.events作为上下文传递给节点，渲染可见的节点
+formatTreeNodeData-->handlerData:格式化data,生成id，pId,text,children必需属性， 追加_path属性，
+formatTreeNodeData-->handlerData:追加_path属性的渲染与查询
+formatTreeNodeData-->handlerData:生成hashData（Map) 方便通过id查询节点
+treeDataToFlatData-->handlerData:扁平化数据flatData，并且追加_isLast,_openDescendant 属性 方便渲染虚线
+getVisibleData-->handlerData:【reduce】生成新的visibleData,可见数据
+@enduml
+```
+
+##### 4.2.1 data 组件数据流
+
+```plantuml
+@startuml
+TreeContainer-->TreeView:传递visibleData,props,events作为上下文传递给节点，渲染可见的节点
 TreeView-->TreeNode:for循环visibleData，渲染具体的节点
-TreeNode-->TreeContainer: 设置节点的事件，借助上下文回调处理数据
+TreeNode-->TreeContainer: 设置节点的事件，借助上下文处理数据
 TreeNode-->NodeView:渲染节点视图
 @enduml
 ```
@@ -296,10 +310,9 @@ TreeNode-->NodeView:渲染节点视图
 
 如果传递的 url，进行 fetch 请求，得到传递的数据
 
-##### 4.3.4 func-公共函数库
+##### 4.3.4 func-toTreeData 转成树状结构
 
-1. 提供公共函数，比如将简单数据转成树结构
-2. 树结构数据扁平化
+1. 将简单数据转成树结构
 
 ##### 4.3.5 treeFunc-树的操作
 
@@ -309,14 +322,15 @@ TreeNode-->NodeView:渲染节点视图
 4. 树节点的移动，停靠
 5. 树节点的筛选
 6. 树节点的格式化
+7. 树节点的扁平化
 
 ##### 4.3.6 treeFunc-formatTreeNodeData-格式化数据
 
-3. 格式化数据，方便后期树节点的操作
-4. 通过 idFeild,parentFeild,textFeild,childFeild 得到·`id，pId,text,children`属性
-5. `id[key]`,`pId[父节点id]`,`text[文本】`,`children[子节点]`
-6. 生成`_path`属性，即节点的路径，用于寻址
-7. 生成`_isLast`属性，是否当前层级的最后一个节点，用于生成虚线
+1. 格式化数据，方便后期树节点的操作
+2. 通过 idFeild,parentFeild,textFeild,childFeild 得到·`id，pId,text,children`属性
+3. `id[key]`,`pId[父节点id]`,`text[文本】`,`children[子节点]`
+4. 生成`_path`属性，即节点的路径，用于寻址及渲染
+5. 生成`hashData`map，方便通过 id 来查询节点
 
 ##### 4.3.7 myReducer-树的 reduce 函数
 

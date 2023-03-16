@@ -83,7 +83,7 @@
   padding-top: 9px;
 }
 
-/* 树表格与交叉表底部的分隔线及高度 */
+/* 树表格与交叉表*/
 .wasabi-treegrid .wasabi-tree .wasabi-tree-li-icon {
   border-bottom: 1px solid var(--border-color);
   height: 41px;
@@ -94,6 +94,15 @@
   border-bottom: 1px solid var(--border-color);
   height: 41px;
   padding-top: 14px;
+}
+
+.wasabi-tree-reduce {
+  position: relative;
+}
+.wasabi-tree-reduce::after {
+  content: "";
+  border-top: 1px dotted var(--dotted-color);
+  position: absolute;
 }
 
 /* 树的折叠图标右边的虚线 */
@@ -122,7 +131,7 @@
   position: absolute;
   border-left: none;
   border-bottom: 1px solid var(--border-color);
-  width: 1000px;
+  width: 10000px;
   left: -1000px;
   height: 41px;
   top: 0px;
@@ -133,7 +142,7 @@
   position: absolute;
   border-left: none;
   border-bottom: 1px solid var(--border-color);
-  width: 1000px;
+  width: 10000px;
   left: -1000px;
   height: 41px;
   top: 0px;
@@ -295,7 +304,7 @@
   padding-top: 12px;
 }
 
-/*没有勾选功能时并且有子节点时有向下虚线*/
+/*没有勾选功能时并且有子节点时 图标本身有向下虚线*/
 .wasabi-tree .wasabi-tree-text-icon .noCheckhasChildren {
   content: "";
   position: absolute;

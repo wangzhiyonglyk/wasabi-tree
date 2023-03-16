@@ -1,5 +1,4 @@
 import React from "react";
-import { toTreeData, treeDataToFlatData } from "../libs/func";
 import {
   setChecked,
   setRadioChecked,
@@ -16,8 +15,9 @@ import {
   filter,
   formatTreeNodeData,
   setLinkNodeOpen,
+  treeDataToFlatData,
 } from "./treeFunc";
-import config from "./config";
+
 /***************以下是处理数据的代码************************/
 
 /**
@@ -27,7 +27,7 @@ import config from "./config";
 @param dispatch 设置更新后的状态值
 */
 export function handlerData(gobalData, action, dispatch) {
-  const current = gobalData.current;
+  const currentRef = gobalData.current;
   const payload = action.payload;
   let isChecked = false;
   switch (action.type) {
@@ -38,17 +38,17 @@ export function handlerData(gobalData, action, dispatch) {
     case "onChecked":
       isChecked = payload.id + "" === payload.checkValue + "";
       if (payload.checkStyle === "checkbox") {
-        current.data = setChecked(
-          current.hashData,
-          current.data,
+        currentRef.data = setChecked(
+          currentRef.hashData,
+          currentRef.data,
           payload.id,
           isChecked,
           payload.checkType
         );
       } else if (payload.checkStyle === "radio") {
-        current.data = setRadioChecked(
-          current.hashData,
-          current.data,
+        currentRef.data = setRadioChecked(
+          currentRef.hashData,
+          currentRef.data,
           payload.id,
           isChecked,
           payload.radioType
@@ -57,9 +57,9 @@ export function handlerData(gobalData, action, dispatch) {
       break;
     // 重命名
     case "onRename":
-      current.data = renameNode(
-        current.hashData,
-        current.data,
+      currentRef.data = renameNode(
+        currentRef.hashData,
+        currentRef.data,
         payload.id,
         payload.newText,
         payload.options
@@ -67,42 +67,42 @@ export function handlerData(gobalData, action, dispatch) {
       break;
     // 移除
     case "onRemove":
-      current.data = removeNode(
-        current.hashData,
-        current.data,
+      currentRef.data = removeNode(
+        currentRef.hashData,
+        currentRef.data,
         payload.id,
         payload.options
       );
-      current.flatData = treeDataToFlatData(current.data);
+      currentRef.flatData = treeDataToFlatData(currentRef.data);
       break;
     // 停靠
     case "onDrop":
       if (payload.dragType === "in") {
-        current.data = moveInNode(
-          current.hashData,
-          current.data,
+        currentRef.data = moveInNode(
+          currentRef.hashData,
+          currentRef.data,
           payload.dragNode,
           payload.dropNode,
           payload.options
         );
       } else if (payload.dragType === "before") {
-        current.data = moveBeforeNode(
-          current.hashData,
-          current.data,
+        currentRef.data = moveBeforeNode(
+          currentRef.hashData,
+          currentRef.data,
           payload.dragNode,
           payload.dropNode,
           payload.options
         );
       } else if (payload.dragType === "after") {
-        current.data = moveAterNode(
-          current.hashData,
-          current.data,
+        currentRef.data = moveAterNode(
+          currentRef.hashData,
+          currentRef.data,
           payload.dragNode,
           payload.dropNode,
           payload.options
         );
       }
-      current.flatData = treeDataToFlatData(current.data);
+      currentRef.flatData = treeDataToFlatData(currentRef.data);
       break;
     /**
      * 以下父组件调用的
@@ -111,35 +111,35 @@ export function handlerData(gobalData, action, dispatch) {
     case "filter":
       if ((payload ?? "").toStrng() !== "") {
         //查询条件不为空
-        current.filterData = filter(current.flatData, payload);
+        currentRef.filterData = filter(currentRef.flatData, payload);
       }
       break;
     //设置折叠或展开
     case "setOpen":
-      current.data = setOpen(
-        current.hashData,
-        current.data,
+      currentRef.data = setOpen(
+        currentRef.hashData,
+        currentRef.data,
         payload.id,
         payload.isOpened,
         payload.foldBroAble
       );
-      current.flatData = treeDataToFlatData(current.data);
+      currentRef.flatData = treeDataToFlatData(currentRef.data);
       break;
     //设置勾选
     case "setChecked":
       if (payload.id) {
         if (payload.checkStyle === "checkbox") {
-          current.data = setChecked(
-            current.hashData,
-            current.data,
+          currentRef.data = setChecked(
+            currentRef.hashData,
+            currentRef.data,
             payload.id,
             !!payload.isChecked,
             payload.checkType
           );
         } else if (payload.checkStyle === "radio") {
-          current.data = setRadioChecked(
-            current.hashData,
-            current.data,
+          currentRef.data = setRadioChecked(
+            currentRef.hashData,
+            currentRef.data,
             payload.id,
             !!payload.isChecked,
             payload.radioType
@@ -149,131 +149,126 @@ export function handlerData(gobalData, action, dispatch) {
       break;
     //全部清除
     case "clearChecked":
-      current.data = clearChecked(current.data);
+      currentRef.data = clearChecked(currentRef.data);
       break;
     //勾选所有
     case "checkedAll":
-      current.data = checkedAll(current.data);
+      currentRef.data = checkedAll(currentRef.data);
       break;
     // 追加
     case "append":
-      current.data = appendChildren(
-        current.hashData,
-        current.data,
+      currentRef.data = appendChildren(
+        currentRef.hashData,
+        currentRef.data,
         payload.pId,
         payload.children,
         payload.options
       );
-      current.flatData = treeDataToFlatData(current.data);
+      currentRef.flatData = treeDataToFlatData(currentRef.data);
       break;
     //删除节点
     case "remove":
       if (Array.isArray(payload.ids)) {
         payload.ids.forEach((item) => {
-          current.data = removeNode(
-            current.hashData,
-            current.data,
+          currentRef.data = removeNode(
+            currentRef.hashData,
+            currentRef.data,
             item,
             payload.options
           );
         });
       } else {
-        current.data = removeNode(
-          current.hashData,
-          current.data,
+        currentRef.data = removeNode(
+          currentRef.hashData,
+          currentRef.data,
           payload.ids,
           payload.options
         );
       }
-      current.flatData = treeDataToFlatData(current.data);
+      currentRef.flatData = treeDataToFlatData(currentRef.data);
       break;
     //删除所有
     case "removeAll":
-      current.data = current.flatData = current.filterData = null;
-      current.hashData = new Map(); //这个要初始化
+      currentRef.data = currentRef.flatData = currentRef.filterData = null;
+      currentRef.hashData = new Map(); //这个要初始化
       break;
     //更新某个，或者某一组
     case "update":
       if (Array.isArray(payload.nodes)) {
         payload.nodes.forEach((item) => {
-          current.data = updateNode(
-            current.hashData,
-            current.data,
+          currentRef.data = updateNode(
+            currentRef.hashData,
+            currentRef.data,
             item.id,
             item,
             payload.options
           );
         });
       } else {
-        current.data = updateNode(
-          current.hashData,
-          current.data,
+        currentRef.data = updateNode(
+          currentRef.hashData,
+          currentRef.data,
           payload.nodes.id,
           payload.nodes,
           payload.options
         );
       }
-      current.flatData = treeDataToFlatData(current.data);
+      currentRef.flatData = treeDataToFlatData(currentRef.data);
       break;
     //更新所有
     case "updateAll":
-      current.hashData = new Map(); //先清空hash表
-      //如果是简单数据，则转成树结构
-      current.data = payload.options.isSimpleData
-        ? toTreeData(
-            payload.data,
-            payload.options.idField,
-            payload.options.parentField,
-            payload.options.textField
-          )
-        : payload.data;
-      //设置路径
-      current.data = formatTreeNodeData(
-        current.hashData,
+      currentRef.hashData = new Map(); //先清空hash表
+      //格式化数据
+      currentRef.data = formatTreeNodeData(
+        currentRef.hashData,
         "",
         [],
-        current.data,
+        payload.data,
         payload.options
       ); //设置路径等信息
-      current.flatData = treeDataToFlatData(current.data);
+      currentRef.flatData = treeDataToFlatData(currentRef.data);
       break;
     //移动节点到内部
     case "moveIn":
-      current.data = moveInNode(
-        current.hashData,
-        current.data,
+      currentRef.data = moveInNode(
+        currentRef.hashData,
+        currentRef.data,
         { id: payload.dragId },
         { id: payload.dropId },
         payload.options
       );
-      current.flatData = treeDataToFlatData(current.data);
+      currentRef.flatData = treeDataToFlatData(currentRef.data);
       break;
     //移动节点到前面
     case "moveBefore":
-      current.data = moveBeforeNode(
-        current.hashData,
-        current.data,
+      currentRef.data = moveBeforeNode(
+        currentRef.hashData,
+        currentRef.data,
         { id: payload.dragId },
         { id: payload.dropId },
         payload.options
       );
-      current.flatData = treeDataToFlatData(current.data);
+      currentRef.flatData = treeDataToFlatData(currentRef.data);
       break;
     //移动节点到后面
     case "moveAfter":
-      current.data = moveAterNode(
-        current.hashData,
-        current.data,
+      currentRef.data = moveAterNode(
+        currentRef.hashData,
+        currentRef.data,
         { id: payload.dragId },
         { id: payload.dropId },
         payload.options
       );
-      current.flatData = treeDataToFlatData(current.data);
+      currentRef.flatData = treeDataToFlatData(currentRef.data);
       break;
     //展开所有父节点
     case "setLinkOpen":
-      current.data = setLinkNodeOpen(current.hashData, current.data, payload);
-      current.flatData = treeDataToFlatData(current.data);
+      currentRef.data = setLinkNodeOpen(
+        currentRef.hashData,
+        currentRef.data,
+        payload
+      );
+      currentRef.flatData = treeDataToFlatData(currentRef.data);
       break;
     default:
       break;
@@ -282,8 +277,8 @@ export function handlerData(gobalData, action, dispatch) {
    * 如果有dispatch,异步执行，保证多条操作合并成一个action,更新数据
    */
   if (dispatch) {
-    clearTimeout(current.asyncAction);
-    current.asyncAction = setTimeout(() => {
+    clearTimeout(currentRef.asyncAction);
+    currentRef.asyncAction = setTimeout(() => {
       dispatch({ type: "update", payload: gobalData });
     }, 10);
   }
@@ -318,36 +313,6 @@ function getVisibleData(gobalDataRef) {
     console.log("getVisibleData", e);
   }
   return visibleData;
-}
-
-/**
- 树滚动到指定位置，
-@param {*} treeid 树组件的id
-@param {*} startIndex 可见的起始下标
-@param {*} visibleDataCount 可见个数
-*/
-export function treeScrollTop(
-  treeid,
-  startIndex,
-  visibleDataCount,
-  rowDefaultHeight
-) {
-  let startOffset;
-  if (startIndex >= 1) {
-    // 减去上部预留的高度
-    let size =
-      (startIndex + 1) * rowDefaultHeight -
-      (startIndex - config.bufferScale * visibleDataCount >= 0
-        ? (startIndex - config.bufferScale * visibleDataCount) *
-          rowDefaultHeight
-        : 0);
-    startOffset = startIndex * rowDefaultHeight - size;
-  } else {
-    startOffset = 0;
-  }
-  document.getElementById(
-    treeid
-  ).style.transform = `translate3d(0,${startOffset}px,0)`;
 }
 
 /** 

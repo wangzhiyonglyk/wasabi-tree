@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "348798",
+      "name": "spinner",
+      "font_class": "loading",
+      "unicode": "ebfe",
+      "unicode_decimal": 60414
+    },
+    {
       "icon_id": "10304433",
       "name": "text",
       "font_class": "text",
