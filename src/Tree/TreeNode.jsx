@@ -195,7 +195,7 @@ function NodeView({ row, nodeEvents }) {
       ></Radio>
     );
   } else if (typeof checkStyle === "function" && selectAble) {
-    checkNode = checkStyle(row);
+    checkNode = <div style="width:20px;">{checkStyle(row)}</div>;
   }
 
   if (checkNode) {
@@ -619,6 +619,7 @@ TreeNode.propTypes = {
   iconOpen: PropTypes.node, //[父节点]打开图标
   isOpened: PropTypes.bool, //是否处于打开状态
   isChecked: PropTypes.bool, //是否被勾选
+  contextMenuAble: PropTypes.bool, //是否有右键菜单功能
   selectAble: PropTypes.bool, //是否允许勾选
   addAble: PropTypes.bool, //是否允许新增
   renameAble: PropTypes.bool, //是否允许重命名

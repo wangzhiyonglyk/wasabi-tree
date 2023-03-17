@@ -47,54 +47,58 @@ function Demo(props) {
 
 #### 2.3 树属性
 
-| 属性名         | 类型                               | 说明                                                                                                          | 默认值                      |
-| -------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| name           | string                             | 树名称                                                                                                        | null                        |
-| idField        | string                             | 指定哪个字段是节点的 id                                                                                       | id                          |
-| parentField    | string                             | 指定哪个字段是节点的 pId                                                                                      | pId                         |
-| textField      | string                             | 指定哪个字段是节点的 text                                                                                     | text                        |
-| childrenField  | string                             | 指定哪个字段是节点的 children                                                                                 | children                    |
-| url            | string                             | `1.后台查询地址，第一次自动查询 2.节点展开时如果asyncAble为true，而oAsync函数为空，则自动根据这个url地址查询` | null                        |
-| params         | object                             | 向后台传输的额外参数                                                                                          | null                        |
-| `dataSource`   | string                             | 有 url 参数时的返回的数据源中哪个属性作为数据源,可以分层比如`data.list `                                      | data                        |
-| headers        | array                              | 请求时传的表头参数                                                                                            | null                        |
-| data           | array                              | 父组件传的固定数据                                                                                            | null                        |
-| `isSimpleData` | bool                               | `是否使用简单的数据格式：。目的是在前端将扁平化数据转成树状结构`                                              | false                       |
-| dottedAble     | bool                               | 是否有虚线                                                                                                    | true                        |
-| selectAble     | bool                               | 是否允许勾选                                                                                                  | false                       |
-| checkStyle     | oneOf(["checkbox", "radio", func]) | 单选还是多选,可以通过函数返回自定义组件，`func(row){retrun node;}` 注意： `宽度20px,高度 30px`                | checkbox                    |
-| checkType      | object                             | 勾选对于父子节点的关联关系`[y]代表选中，[n]代表取消 [p]父节点 [s]代表子节点`                                  | `{ "y": "ps", "n": "ps" }`  |
-| radioType      | oneOf(["level", "all"])            | 单选时影响的层级`[level]同级 [all]整个树`                                                                     | `all`                       |
-| renameAble     | bool                               | 是否允许重命名                                                                                                | false                       |
-| removeAble     | bool                               | 是否允许移除                                                                                                  | false                       |
-| draggAble      | bool                               | 是否允许拖动                                                                                                  | false                       |
-| dropAble       | bool                               | 是否允许停靠                                                                                                  | false                       |
-| dropType       | array                              | 停靠模式                                                                                                      | null,["before","in","after" |
-| asyncAble      | bool                               | 展开节点是否可以异步加载数据                                                                                  | false                       |
-| textFormatter  | func(row)                          | 自定义节点文本样式函数 例子：` (row)=>{return <div className="red">{row.text}</div>`                          | null                        |
+| 属性名          | 类型                               | 说明                                                                                                          | 默认值                       |
+| --------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| name            | string                             | 树名称                                                                                                        | null                         |
+| idField         | string                             | 指定哪个字段是节点的 id                                                                                       | id                           |
+| parentField     | string                             | 指定哪个字段是节点的 pId                                                                                      | pId                          |
+| textField       | string                             | 指定哪个字段是节点的 text                                                                                     | text                         |
+| childrenField   | string                             | 指定哪个字段是节点的 children                                                                                 | children                     |
+| url             | string                             | `1.后台查询地址，第一次自动查询 2.节点展开时如果asyncAble为true，而oAsync函数为空，则自动根据这个url地址查询` | null                         |
+| params          | object                             | 向后台传输的额外参数                                                                                          | null                         |
+| `dataSource`    | string                             | 有 url 参数时的返回的数据源中哪个属性作为数据源,可以分层比如`data.list `                                      | data                         |
+| headers         | array                              | 请求时传的表头参数                                                                                            | null                         |
+| data            | array                              | 父组件传的固定数据                                                                                            | null                         |
+| `isSimpleData`  | bool                               | `是否使用简单的数据格式：。目的是在前端将扁平化数据转成树状结构`                                              | false                        |
+| dottedAble      | bool                               | 是否有虚线                                                                                                    | true                         |
+| selectAble      | bool                               | 是否允许勾选                                                                                                  | false                        |
+| checkStyle      | oneOf(["checkbox", "radio", func]) | 单选还是多选,可以通过函数返回自定义组件，`func(row){retrun node;}` 注意： `宽度20px,高度 30px`                | checkbox                     |
+| checkType       | object                             | 勾选对于父子节点的关联关系`[y]代表选中，[n]代表取消 [p]父节点 [s]代表子节点`                                  | `{ "y": "ps", "n": "ps" }`   |
+| radioType       | oneOf(["level", "all"])            | 单选时影响的层级`[level]同级 [all]整个树`                                                                     | `all`                        |
+| contextMenuAble | bool                               | 是否允许右键菜单名                                                                                            | null                         |
+| renameAble      | bool                               | 是否允许重命名                                                                                                | null                         |
+| renameIconAble  | bool                               | 是否允许有重命名图标                                                                                          | null                         |
+| removeAble      | bool                               | 是否允许移除                                                                                                  | null                         |
+| removeIconAble  | bool                               | 是否允许有删除图标                                                                                            | null                         |
+| draggAble       | bool                               | 是否允许拖动                                                                                                  | null                         |
+| dropAble        | bool                               | 是否允许停靠                                                                                                  | null                         |
+| dropType        | array                              | 停靠模式                                                                                                      | null,["before","in","after"] |
+| asyncAble       | bool                               | 展开节点是否可以异步加载数据                                                                                  | null                         |
+| textFormatter   | func(row)                          | 自定义节点文本样式函数 例子：` (row)=>{return <div className="red">{row.text}</div>`                          | null                         |
 
 #### 2.4 事件
 
-| 属性名        | 类型 | 说明                                       | 参数                                                      | 返回值                     |
-| ------------- | ---- | ------------------------------------------ | --------------------------------------------------------- | -------------------------- |
-| onClick       | func | 单击的事件                                 | id,text,row                                               | null                       |
-| onDoubleClick | func | 双击事件                                   | id,text,row                                               | null                       |
-| onCheck       | func | 勾选/取消勾选事件                          | isChecked, id, text, row                                  | null                       |
-| onExpand      | func | 展开/折叠事件                              | open, id, text, row                                       | null                       |
-| onAdd         | func | 新增事件                                   | id, text, parentNode                                      | null                       |
-| onRename      | func | 重命名事件                                 | id, text, row, newText                                    | null                       |
-| onRemove      | func | 删除事件                                   | id, text, row                                             | null                       |
-| onContextMenu | func | 自定义右键菜单视图                         | id, text, row,event                                       | null                       |
-| onDrag        | func | 拖动事件                                   | id, text, row                                             | null                       |
-| onDrop        | func | 停靠事件                                   | dragNode(移动节点),dropNode(停靠节点)dragType(停靠方式)   | null                       |
-| onAsync       | func | 节点异步查询，为 null，则会通过 url 来处理 | id, text, row                                             | 返回值即异步加载后节点数据 |
-| onAsync       | func | 节点异步查询，为 null，则会通过 url 来处理 | id, text, row                                             | 返回值即异步加载后节点数据 |
-| loadSuccess   | func | 有 url 时请求成功后的事件，用于加工数据    | data                                                      | 返回加工后的数据           |
-| beforeAdd     | func | 新增前事件                                 | id, text, row                                             | `true(同意),false(不同意)` |
-| beforeRemove  | func | 删除前事件                                 | id, text, row                                             | `true(同意),false(不同意)` |
-| beforeRename  | func | 重命名前事件                               | id, text, row                                             | `true(同意),false(不同意)` |
-| beforeDrag    | func | 拖动前事件                                 | id, text, row                                             | `true(同意),false(不同意)` |
-| beforeDrop    | func | 停靠前事件                                 | dragNode(移动节点), dropNode(停靠节点), dragType(停靠方式 | `true(同意),false(不同意)` |
+| 属性名            | 类型 | 说明                                       | 参数                                                      | 返回值                     |
+| ----------------- | ---- | ------------------------------------------ | --------------------------------------------------------- | -------------------------- |
+| onClick           | func | 单击的事件                                 | id,text,row                                               | null                       |
+| onDoubleClick     | func | 双击事件                                   | id,text,row                                               | null                       |
+| onCheck           | func | 勾选/取消勾选事件                          | isChecked, id, text, row                                  | null                       |
+| onExpand          | func | 展开/折叠事件                              | open, id, text, row                                       | null                       |
+| onAdd             | func | 新增事件                                   | id, text, parentNode                                      | null                       |
+| onRename          | func | 重命名事件                                 | id, text, row, newText                                    | null                       |
+| onRemove          | func | 删除事件                                   | id, text, row                                             | null                       |
+| onContextMenu     | func | 自定义右键菜单视图                         | id, text, row,event                                       | null                       |
+| onDrag            | func | 拖动事件                                   | id, text, row                                             | null                       |
+| onDrop            | func | 停靠事件                                   | dragNode(移动节点),dropNode(停靠节点)dragType(停靠方式)   | null                       |
+| onAsync           | func | 节点异步查询，为 null，则会通过 url 来处理 | id, text, row                                             | 返回值即异步加载后节点数据 |
+| onAsync           | func | 节点异步查询，为 null，则会通过 url 来处理 | id, text, row                                             | 返回值即异步加载后节点数据 |
+| loadSuccess       | func | 有 url 时请求成功后的事件，用于加工数据    | data                                                      | 返回加工后的数据           |
+| beforeContextMenu | func | 鼠标右键前事件                             | id, text, row ,event                                      | `true(同意),false(不同意)` |
+| beforeAdd         | func | 新增前事件                                 | id, text, row                                             | `true(同意),false(不同意)` |
+| beforeRemove      | func | 删除前事件                                 | id, text, row                                             | `true(同意),false(不同意)` |
+| beforeRename      | func | 重命名前事件                               | id, text, row                                             | `true(同意),false(不同意)` |
+| beforeDrag        | func | 拖动前事件                                 | id, text, row                                             | `true(同意),false(不同意)` |
+| beforeDrop        | func | 停靠前事件                                 | dragNode(移动节点), dropNode(停靠节点), dragType(停靠方式 | `true(同意),false(不同意)` |
 
 #### 2.5 组件方法（ref)
 
@@ -135,11 +139,12 @@ function Demo(props) {
 | arrowFoldIcon   | node         | 节点折叠的箭头图标组件                                      | icon-arrow-right |
 | isOpened        | bool         | 是否处于打开状态                                            | null             |
 | isChecked       | bool         | 是否被勾选                                                  | null             |
+| contextMenuAble | bool         | 是否允许右键菜单                                            | null             |
 | addAble         | bool         | 是否允许新增                                                | null             |
 | removeAble      | bool         | 是否允许删除                                                | null             |
-| removeIconAble  | bool         | 是否允许删除图                                              | null             |
+| removeIconAble  | bool         | 是否允许有删除图标                                          | null             |
 | renameAble      | bool         | 是否允许重命名                                              | null             |
-| renameIconAble  | bool         | 是否允许重命名图标                                          | null             |
+| renameIconAble  | bool         | 是否允许有重命名图标                                        | null             |
 | selectAble      | bool         | 是否允许勾选                                                | null             |
 | draggAble       | bool         | 是否允许拖动                                                | null             |
 | dropAble        | bool         | 是否允许停靠                                                | null             |
