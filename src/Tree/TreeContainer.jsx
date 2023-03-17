@@ -568,11 +568,10 @@ const TreeContainer = React.forwardRef(function (props, ref) {
     getData() {
       return gobalData.current.data;
     },
-    /*设置值
-    @param {*} newValue
-    */
+    /*获取勾选的值
+     */
     getChecked() {
-      return getChecked(gobalData.current.data);
+      return getChecked(gobalData.current.data, checkStyle, radioType);
     },
     /**
         设置勾选

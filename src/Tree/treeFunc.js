@@ -255,14 +255,9 @@ export function setRadioChecked(hashData, data, id, isChecked, radioType) {
           if (nodes && nodes.length >= 2) {
             // 有父节点，去设置兄弟节点
             const parentRemoveNode = nodes[nodes.length - 2];
-            if (
-              parentRemoveNode.children &&
-              parentRemoveNode.children.length > 0
-            ) {
-              for (let i = 0; i < parentRemoveNode.children.length; i++) {
-                parentRemoveNode.children[i].isChecked = false;
-                parentRemoveNode.children[i].half = false;
-              }
+            for (let i = 0; i < parentRemoveNode?.children?.length; i++) {
+              parentRemoveNode.children[i].isChecked = false;
+              parentRemoveNode.children[i].half = false;
             }
           } else if (nodes && nodes.length === 1) {
             // 根节点
@@ -270,12 +265,9 @@ export function setRadioChecked(hashData, data, id, isChecked, radioType) {
               data[i].isChecked = false;
               data[i].half = false;
             }
-            // 本身
-            if (nodes && nodes.length > 0) {
-              nodes[nodes.length - 1].isChecked - isChecked;
-              nodes[nodes.length - 1].half = false;
-            }
           }
+          node.isChecked = isChecked;
+          node.half = false;
         }
       }
     }
@@ -353,15 +345,31 @@ export function setNodeParentsChecked(nodes) {
  * 获取所有勾选的节点
 @param {*} data
 */
-export function getChecked(data, checkedArr = []) {
+export function getChecked(data, checkStyle, radioType, checkedArr = []) {
   try {
     if (Array.isArray(data)) {
       for (let i = 0; i < data.length; i++) {
         const node = data[i];
-        if (node.isChecked) {
-          checkedArr.push(node);
-          if (Array.isArray(node.children)) {
-            getChecked(node.children, checkedArr);
+        if (checkStyle !== "radio") {
+          //非单选包括自定义样式
+          if (node.isChecked) {
+            checkedArr.push(node);
+            getChecked(node.children, checkStyle, radioType, checkedArr);
+          } else if (node.half) {
+            getChecked(node.children, checkStyle, radioType, checkedArr);
+          }
+        } else {
+          //
+          if (radioType === "all" && node.isChecked) {
+            //如果是全局单选
+            checkedArr.push(node);
+            break;
+          } else {
+            //同级单选
+            if (node.isChecked) {
+              checkedArr.push(node);
+            }
+            getChecked(node.children, checkStyle, radioType, checkedArr);
           }
         }
       }
@@ -823,37 +831,40 @@ export function appendChildren(hashData, data = [], pId, children, options) {
  * @param {*} data 数据
  * @returns
  */
-export function treeDataToFlatData(data, result = []) {
-  result = result ?? [];
+export function treeDataToFlatData(data) {
+  let result = [];
   if (Array.isArray(data)) {
     for (let i = 0; i < data.length; i++) {
       let item = data[i];
       item._isLast = i === data.length - 1 ? true : false; //目的为了画向下的虚线最一个
-      item._openDescendant = getOpenDescendantNum(item);
+
       result.push(item);
-      if (item.children && item.children.length > 0 && item.isOpened === true) {
-        treeDataToFlatData(item.children, result); //将结果传递下去，这样就不用利用返回值来合并
+      if (item.isOpened === true && item?.children?.length > 0) {
+        item._openDescendant = treeDataToFlatDataAndDescendantNum(item, result); //将结果传递下去，这样就不用利用返回值来合并,优化性能，只把子孙节点来作为返回值
+      } else {
+        item._openDescendant = 0;
       }
     }
   }
   return result;
 }
-
 /**
- * 得到节点展开后的子孙节点个数
+ * 打平每一个节点，并且计算展开的子孙节点个数
  * @param {*} node
- * @returns
+ * @param {*} result
+
  */
-function getOpenDescendantNum(node) {
-  let _openDescendant = 0;
-  if (node?.children?.length > 0 && node.isOpened === true) {
-    _openDescendant += node?.children?.length;
+function treeDataToFlatDataAndDescendantNum(node, result) {
+  let openDescendant = 0;
+  if (node.isOpened === true && node?.children?.length > 0) {
+    openDescendant += node.children.length;
     for (let i = 0; i < node.children.length; i++) {
       let item = node.children[i];
-      if (item?.children?.length > 0 && item.isOpened === true) {
-        _openDescendant += getOpenDescendantNum(item); //将结果传递下去，这样就不用利用返回值来合并
-      }
+      item._isLast = i === node.children.length - 1 ? true : false; //目的为了画向下的虚线最一个
+      result.push(item);
+      item._openDescendant = treeDataToFlatDataAndDescendantNum(item, result); //将结果传递下去，这样就不用利用返回值来合并
+      openDescendant += item._openDescendant;
     }
   }
-  return _openDescendant;
+  return openDescendant;
 }

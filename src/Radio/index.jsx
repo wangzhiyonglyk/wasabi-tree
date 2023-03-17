@@ -12,11 +12,12 @@ function Radio(props) {
     setValue(props.value);
   }, [props]);
   const onSelect = useCallback(
-    (v, t, c) => {
-      setValue(v);
-      props.onSelect && props.onSelect(v, t, c);
+    (newValue, text, row) => {
+      setValue(newValue === value ? null : newValue); //可以取消
+      props.onSelect &&
+        props.onSelect(newValue === value ? null : newValue, text, row);
     },
-    [props]
+    [value, props]
   );
 
   const { data, readOnly } = props;
