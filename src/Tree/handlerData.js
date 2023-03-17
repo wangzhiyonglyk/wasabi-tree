@@ -11,6 +11,7 @@ import {
   moveBeforeNode,
   moveInNode,
   setOpen,
+  setDisabled,
   appendChildren,
   filter,
   formatTreeNodeData,
@@ -122,6 +123,16 @@ export function handlerData(gobalData, action, dispatch) {
         payload.id,
         payload.isOpened,
         payload.foldBroAble
+      );
+      currentRef.flatData = treeDataToFlatData(currentRef.data);
+      break;
+    //设置为不可用
+    case "setDisabled":
+      currentRef.data = setDisabled(
+        currentRef.hashData,
+        currentRef.data,
+        payload.id,
+        payload.disabled
       );
       currentRef.flatData = treeDataToFlatData(currentRef.data);
       break;

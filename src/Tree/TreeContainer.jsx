@@ -574,6 +574,24 @@ const TreeContainer = React.forwardRef(function (props, ref) {
       return getChecked(gobalData.current.data, checkStyle, radioType);
     },
     /**
+     * 设置节点是否可用
+     * @param {*} id
+     * @param {*} disabled
+     */
+    setDisabled(id, disabled) {
+      handlerData(
+        gobalData,
+        {
+          type: "setDisabled",
+          payload: {
+            id,
+            disabled: disabled,
+          },
+        },
+        dispatch
+      );
+    },
+    /**
         设置勾选
         @param {*} id
         @param {*}  isChecked 是否勾选

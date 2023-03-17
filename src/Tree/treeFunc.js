@@ -486,7 +486,19 @@ export function setLinkNodeOpen(hashData, data = [], id) {
   }
   return data;
 }
-
+/**
+ * 设置某个节点不可用
+ * @param {*} hashData
+ * @param {*} data
+ * @param {*} id
+ */
+export function setDisabled(hashData, data = [], id, disabled = true) {
+  const node = findNodeById(hashData, data, id);
+  if (node) {
+    node.disabled = disabled;
+  }
+  return data;
+}
 /**
  * 重命名
  * @param {*} hashData
