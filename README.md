@@ -106,6 +106,8 @@ function Demo(props) {
 | getChecked   | func | 获取勾选节点                                       | null           | isCheckedData |
 | setChecked   | func | 设置勾选节点                                       | id,isChecked   | null          |
 | setDisabled  | func | 设置不可操作                                       | id,disabled    | null          |
+| setLoading   | func | 设置加载状态                                       | id             | null          |
+| clearLoading | func | 取消加载状态                                       |                | null          |
 | clearChecked | func | 清除全部勾选节点                                   | null           | null          |
 | checkedAll   | func | 勾选全部节点                                       | null           | data          |
 | selectNode   | func | 设置节点单击选中，并且滚动到此处，祖先节点全部展开 | id             | null          |
