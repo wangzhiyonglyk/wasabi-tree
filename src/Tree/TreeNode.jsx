@@ -635,6 +635,7 @@ TreeNode.propTypes = {
   //这两个树组件内部传的
   _isLast: PropTypes.bool, //是否为父节点的最后一个节点
   _path: PropTypes.array, //节点的路径
+  _openDescendant: PropTypes.number, //展开的子孙节点个数
 };
 TreeNode.defaultProps = {
   iconCls: "icon-text",
