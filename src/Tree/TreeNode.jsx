@@ -66,20 +66,8 @@ function NodeView({ row, nodeEvents }) {
     onNodeDrop,
     onNodeContextMenu,
   } = nodeEvents;
-
-  let iconCls = row.iconCls; //默认图标图标
-  if (row.isParent) {
-    //如果是父节点
-    if (row.isOpened) {
-      //打开状态，
-      iconCls = row.iconOpen ? row.iconOpen : row.iconCls; //没有则用默认图标
-    } else {
-      //关闭状态
-      iconCls = row.iconClose ? row.iconClose : row.iconCls; ///没有则用默认图标
-    }
-  }
-
   let childrenLength = row.isOpened === false ? 0 : row?.children?.length || 0; //子节点个数
+
   let textwidthReduce = 20; //文本字段减少的宽度
   //因为打平的问题，计算出向下的虚线的高度
   let lineHeight =
@@ -100,6 +88,7 @@ function NodeView({ row, nodeEvents }) {
     }
   }
 
+  //节点前面箭头图标的虚线
   let lineControl = [
     // 用于右边加虚线
     <span key="1" className="wasabi-tree-li-icon-beforeRight"></span>,
@@ -110,61 +99,50 @@ function NodeView({ row, nodeEvents }) {
       style={{ height: lineHeight }}
     ></span>,
   ];
+
   //节点前面箭头图标
   let arrowIcon; //折叠箭头
+
   if (row.isParent) {
     //是父节点才有箭头
     if (loadingId === row.id) {
       //正在异步加载
-      arrowIcon = <i className="icon-loading tree-loading"></i>;
+      arrowIcon = "icon-loading tree-loading";
     } else {
-      if (row.isOpened && row.arrowUnFoldIcon) {
-        // 自定义展开图标
-        arrowIcon = (
-          <div
-            className={"wasabi-tree-li-icon"}
-            style={{ display: "inline-block" }}
-            onClick={row.isParent ? onExpand : null}
-          >
-            {row.arrowUnFoldIcon}
-            {lineControl}
-          </div>
-        );
-      }
-
-      if (!row.isOpened && row.arrowFoldIcon) {
-        // 自定义折叠图标
-        arrowIcon = (
-          <div
-            className={"wasabi-tree-li-icon"}
-            style={{ display: "inline-block" }}
-            onClick={row.isParent ? onExpand : null}
-          >
-            {row.arrowFoldIcon}
-            {lineControl}
-          </div>
-        );
-      }
-      if (!arrowIcon) {
-        let icon = componentType === "tree" ? "icon-caret" : "icon-arrow";
-        arrowIcon = (
-          <i
-            className={
-              row.isOpened
-                ? ` wasabi-tree-li-icon  ${icon}-down `
-                : ` wasabi-tree-li-icon  ${icon}-right`
-            }
-            onClick={row.isParent ? onExpand : null}
-          >
-            {lineControl}
-          </i>
-        );
+      arrowIcon = row.isOpened ? row.arrowUnFoldIcon : row.arrowFoldIcon;
+      if (typeof arrowIcon === "string") {
+        //调整一下默认图标样式
+        arrowIcon =
+          componentType === "treegrid"
+            ? arrowIcon.replace("caret", "arrow")
+            : arrowIcon;
       }
     }
   } else {
     //不是父节点，占位符
     arrowIcon = (
       <i className={" wasabi-tree-li-icon-placeholder"}>{lineControl}</i>
+    );
+  }
+
+  if (row.isParent && typeof arrowIcon === "string") {
+    arrowIcon = (
+      <i
+        className={` wasabi-tree-li-icon  ${arrowIcon} `}
+        onClick={row.isParent ? onExpand : null}
+      >
+        {lineControl}
+      </i>
+    );
+  } else if (row.isParent) {
+    arrowIcon = (
+      <div
+        className={"wasabi-tree-li-icon"}
+        onClick={row.isParent ? onExpand : null}
+      >
+        {row.arrowUnFoldIcon}
+        {lineControl}
+      </div>
     );
   }
 
@@ -195,12 +173,56 @@ function NodeView({ row, nodeEvents }) {
       ></Radio>
     );
   } else if (typeof checkStyle === "function" && selectAble) {
-    checkNode = <div style="width:20px;">{checkStyle(row)}</div>;
+    checkNode = (
+      <div style={{ width: 20, position: "relative" }}>{checkStyle(row)}</div>
+    );
   }
 
   if (checkNode) {
     textwidthReduce += 20;
   }
+
+  //文本节点的图标
+  let iconCls = row.iconCls; //默认图标图标
+  if (row.isParent) {
+    //如果是父节点
+    if (row.isOpened) {
+      //打开状态，
+      iconCls = row.iconOpen ? row.iconOpen : row.iconCls; //没有则用默认图标
+    } else {
+      //关闭状态
+      iconCls = row.iconClose ? row.iconClose : row.iconCls; ///没有则用默认图标
+    }
+  }
+  // 没有勾选功能展开时并且有子节点时有虚线
+  iconCls =
+    typeof iconCls === "string" ? (
+      <i
+        key="3"
+        style={{ color: row.iconColor }}
+        className={iconCls + " wasabi-tree-text-icon"}
+      >
+        <span
+          className={
+            !selectAble && row.isOpened && childrenLength
+              ? " noCheckhasChildren "
+              : "  "
+          }
+        ></span>
+      </i>
+    ) : (
+      <div key="3div" className="wasabi-tree-text-icon">
+        <span
+          className={
+            !selectAble && row.isOpened && childrenLength
+              ? " noCheckhasChildren "
+              : "  "
+          }
+        ></span>
+        {iconCls}
+      </div>
+    );
+
   //得到文本值
   let text = row.text;
   if (textFormatter && typeof textFormatter === "function") {
@@ -256,22 +278,12 @@ function NodeView({ row, nodeEvents }) {
             onDragEnd={onNodeDragEnd}
             onDragStart={onNodeDragStart}
           >
-            {/* 没有勾选功能展开时并且有子节点时有虚线 */}
-            {typeof iconCls === "string" ? (
-              <i key="3" className={iconCls + " wasabi-tree-text-icon"}>
-                <span
-                  className={
-                    !selectAble && row.isOpened && childrenLength
-                      ? " noCheckhasChildren "
-                      : "  "
-                  }
-                ></span>
-              </i>
-            ) : (
-              <div className="wasabi-tree-text-icon">{iconCls}</div>
-            )}
-
-            <a href={row.href} className="wasabi-tree-txt">
+            {/* 文本图标 */}
+            {iconCls}
+            <a
+              href={row.href || "javascript:void(0)"}
+              className="wasabi-tree-txt"
+            >
               {text}
             </a>
           </div>
@@ -527,25 +539,26 @@ function TreeNode(row) {
       if (dropAble) {
         //允许停靠
         let isAble = true; //可以停靠
+        let dragItem = JSON.parse(event.dataTransfer.getData("dragItem"));
+        if (!dragItem) {
+          //拿不到就从缓存中拿
+          dragItem = JSON.parse(
+            window.localStorage.getItem("wasabi-drag-item")
+          );
+        }
+        if (!dragItem) {
+          return;
+        }
+        //当前拖动方式
+        let dragType = window.localStorage.getItem("wasabi-drag-type");
         if (treeEvents.beforeDrop) {
-          isAble = treeEvents.beforeDrop(drag, row, dragType); //存在并且返回
+          isAble = treeEvents.beforeDrop(dragItem, row, dragType); //存在并且返回
         }
         if (isAble) {
           document.getElementById(nodeid).style.borderTop = "none";
           document.getElementById(nodeid).style.borderBottom = "none";
           document.getElementById(nodeid).style.backgroundColor = null;
-          let dragItem = JSON.parse(event.dataTransfer.getData("dragItem"));
-          if (!dragItem) {
-            //拿不到就从缓存中拿
-            dragItem = JSON.parse(
-              window.localStorage.getItem("wasabi-drag-item")
-            );
-          }
-          //当前拖动方式
-          let dragType = window.localStorage.getItem("wasabi-drag-type");
-          if (!dragItem) {
-            return;
-          }
+
           //移除当前拖动方式
           window.localStorage.removeItem("wasabi-drag-type");
           treeEvents.onDrop && treeEvents.onDrop(dragItem, row, dragType);
@@ -614,6 +627,7 @@ TreeNode.propTypes = {
   title: PropTypes.string, //提示信息
   arrowFoldIcon: PropTypes.node, //折叠图标
   arrowUnFoldIcon: PropTypes.node, //展开图标
+  iconColor: PropTypes.string, //节点图标颜色
   iconCls: PropTypes.node, //默认图标
   iconClose: PropTypes.node, //[父节点]关闭图标
   iconOpen: PropTypes.node, //[父节点]打开图标
@@ -639,6 +653,8 @@ TreeNode.propTypes = {
   _openDescendant: PropTypes.number, //展开的子孙节点个数
 };
 TreeNode.defaultProps = {
+  arrowUnFoldIcon: "icon-caret-down",
+  arrowFoldIcon: "icon-caret-right",
   iconCls: "icon-text",
   iconClose: "icon-folder",
   iconOpen: "icon-folder-open",

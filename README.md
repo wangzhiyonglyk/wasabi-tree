@@ -135,8 +135,9 @@ function Demo(props) {
 | iconCls         | string /node | 默认图标,可以是组件                                         | icon-text        |
 | iconClose       | string/node  | [父节点]关闭图标 可以是组件                                 | icon-folder      |
 | iconOpen        | string/node  | [父节点]展开图标 可以是组件                                 | icon-folder      |
-| arrowUnFoldIcon | node         | 节点展开的箭头图标组件                                      | icon-arrow-down  |
-| arrowFoldIcon   | node         | 节点折叠的箭头图标组件                                      | icon-arrow-right |
+| iconColor       | string       | 图标颜色                                                    | null             |
+| arrowUnFoldIcon | string/node  | 节点展开的箭头图标, 可以是组件                              | icon-arrow-down  |
+| arrowFoldIcon   | string/node  | 节点折叠的箭头图标,可以是组件                               | icon-arrow-right |
 | isOpened        | bool         | 是否处于打开状态                                            | null             |
 | isChecked       | bool         | 是否被勾选                                                  | null             |
 | contextMenuAble | bool         | 是否允许右键菜单                                            | null             |

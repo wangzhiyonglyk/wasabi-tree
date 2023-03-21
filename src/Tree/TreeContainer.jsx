@@ -354,7 +354,7 @@ const TreeContainer = React.forwardRef(function (props, ref) {
    * 删除事件
    */
   const onTreeRemove = useCallback(
-    (id, text, node) => {
+    (id, text, row) => {
       if (window.$message) {
         window.$message.confirm("您确定删除[" + text + "］吗", () => {
           handlerData(
@@ -365,7 +365,7 @@ const TreeContainer = React.forwardRef(function (props, ref) {
             },
             dispatch
           );
-          onRemove && onRemove(id, text, node);
+          onRemove && onRemove(id, text, row);
         });
       } else if (window.confirm("您确定删除[" + text + "］吗")) {
         handlerData(
@@ -376,7 +376,7 @@ const TreeContainer = React.forwardRef(function (props, ref) {
           },
           dispatch
         );
-        onRemove && onRemove(id, text, node);
+        onRemove && onRemove(id, text, row);
       }
     },
     [onRemove]
